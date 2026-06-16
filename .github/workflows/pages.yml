@@ -5,12 +5,19 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      artifact_path: ${{ steps.pages-artifact.outputs.artifact_path }}
     steps:
       - uses: actions/checkout@v4
-      - name: Upload Pages artifact
+      - id: pages-artifact
         uses: actions/upload-pages-artifact@v1
         with:
           path: .
@@ -20,3 +27,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/deploy-pages@v1
+        with:
+          artifact_path: ${{ needs.build.outputs.artifact_path }}
