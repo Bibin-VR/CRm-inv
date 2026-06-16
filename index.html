@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sai Samarth Engineering — CRM SaaS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     SWISS INDUSTRIAL PRINT  ·  Tactical Documentation System
+     Substrate: unbleached paper  ·  Ink: carbon  ·  Accent: hazard red (ONLY)
+     ============================================================ */
+  :root{
+    --paper:#F4F4F0; --paper2:#EAE8E3; --ink:#0B0B0B; --muted:#6B6A63;
+    --red:#E61919; --hair:#0B0B0B;
+    --head:"Archivo Black","Archivo",system-ui,sans-serif;
+    --grot:"Archivo",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--grot); background:var(--paper); color:var(--ink);
+    font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  body:not(.authed) header.app,body:not(.authed) nav.tabs,body:not(.authed) main{display:none}
+  body.authed .login-screen{display:none}
+  /* Mechanical grain — global, non-interactive */
+  body::after{
+    content:""; position:fixed; inset:0; z-index:60; pointer-events:none; opacity:.045;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .mono{font-family:var(--mono)}
+  hr.rule{border:0;border-top:2px solid var(--ink);margin:0}
+
+  /* ---------- Header ---------- */
+  header.app{
+    background:var(--paper); color:var(--ink); padding:20px 28px 0; display:flex; align-items:flex-start; gap:18px;
+    border-bottom:3px solid var(--ink); position:relative;
+  }
+  header.app::before{ /* hazard warning stripe */
+    content:""; position:absolute; left:0; right:0; top:0; height:7px;
+    background:repeating-linear-gradient(135deg,var(--red) 0 14px,var(--ink) 14px 28px);
+  }
+  .logo{
+    width:54px;height:54px;border-radius:0;flex:none;margin-top:6px;
+    background:var(--ink); color:var(--paper); border:3px solid var(--ink);
+    display:flex;align-items:center;justify-content:center;font-family:var(--head);font-size:21px;
+  }
+  header.app h1{font-family:var(--head);font-size:clamp(22px,3.2vw,38px);margin:6px 0 0;letter-spacing:-.04em;line-height:.9;text-transform:uppercase}
+  header.app .sub{font-family:var(--mono);font-size:11px;color:var(--ink);letter-spacing:.22em;text-transform:uppercase;margin:8px 0 14px;padding-bottom:14px}
+  header.app .sub::before{content:"[ "}header.app .sub::after{content:" ]"}
+  header.app .spacer{flex:1}
+  header.app .clock{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right;letter-spacing:.05em;margin-top:8px;line-height:1.7}
+  header.app .clock::before{content:"UNIT / D-01 · REV 2.6\A SYS STATUS ";white-space:pre;color:var(--ink)}
+  header.app .clock::after{content:" ●";color:var(--red)}
+  .accountbar{display:flex;gap:10px;align-items:flex-start;margin-top:8px;flex-wrap:wrap;justify-content:flex-end}
+  .userchip{border:2px solid var(--ink);padding:8px 10px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;background:var(--paper2);text-align:left}
+  .userchip b{display:block;font-family:var(--grot);font-size:12px;letter-spacing:0;color:var(--ink)}
+
+  /* ---------- Nav buttons ---------- */
+  nav.tabs{display:flex;gap:0;flex-wrap:wrap;padding:0;border-bottom:3px solid var(--ink);background:var(--ink)}
+  .tabbtn{
+    border:0;border-right:2px solid var(--ink);background:var(--paper);color:var(--ink);
+    padding:13px 20px;border-radius:0;font-family:var(--mono);font-weight:600;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;
+    transition:background .08s linear,color .08s linear;
+    display:flex;align-items:center;gap:9px;
+  }
+  .tabbtn:hover{background:var(--ink);color:var(--paper)}
+  .tabbtn.active{background:var(--red);color:var(--paper)}
+  .tabbtn .dot{width:8px;height:8px;border-radius:0;background:transparent;border:2px solid currentColor}
+  .tabbtn.active .dot,.tabbtn:hover .dot{background:currentColor}
+  .subtabs{display:flex;gap:0;flex-wrap:wrap;margin-bottom:18px;background:var(--ink);border:3px solid var(--ink)}
+  .subtabs .tabbtn{border-right:2px solid var(--ink);padding:10px 14px;font-size:10.5px}
+  .inventory-nav-wrap{display:none;margin-bottom:18px}
+  .inventory-nav-wrap.active{display:block}
+
+  main{padding:24px 28px 80px}
+  .panel{background:var(--paper);border:3px solid var(--ink);border-radius:0;position:relative}
+  /* crosshair registration marks at panel corners */
+  .panel::before,.panel::after{content:"+";position:absolute;font-family:var(--mono);font-size:14px;line-height:1;color:var(--ink);pointer-events:none}
+  .panel::before{top:-9px;left:-9px}.panel::after{bottom:-9px;right:-9px}
+  .view{display:none}
+  .view.active{display:block}
+
+  /* ---------- Stat cards (blueprint grid, hairline dividers) ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:24px;background:var(--ink);border:3px solid var(--ink)}
+  .stat{padding:18px 18px 20px;background:var(--paper);position:relative}
+  .stat::before,.stat::after{display:none}
+  .stat .k{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:600}
+  .stat .k::before{content:"// "}
+  .stat .v{font-family:var(--head);font-size:clamp(30px,4vw,52px);margin-top:8px;letter-spacing:-.04em;line-height:.85;font-variant-numeric:tabular-nums}
+  .stat .v small{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.05em}
+  .stat:last-child .v{color:var(--red)}
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{display:flex;gap:0;align-items:stretch;flex-wrap:wrap;border-bottom:3px solid var(--ink);background:var(--ink)}
+  .toolbar>*{background:var(--paper);margin:0 2px 0 0}
+  .toolbar input,.toolbar select{
+    border:0;border-radius:0;padding:12px 14px;font-family:var(--mono);font-size:12px;background:var(--paper);color:var(--ink);width:auto;text-transform:uppercase;letter-spacing:.04em;
+  }
+  .toolbar input::placeholder{color:var(--muted)}
+  .toolbar input[type=search]{min-width:300px}
+  .toolbar .grow{flex:1;margin:0}
+  .count{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;padding:0 14px}
+  .toolbar #resetData{margin-right:0}
+
+  /* ---------- Table ---------- */
+  .tablewrap{overflow:auto;max-height:62vh}
+  table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap;background:var(--ink)}
+  thead th{
+    position:sticky;top:0;background:var(--ink);text-align:left;padding:12px;
+    color:var(--paper);border-right:1px solid #3a3a36;font-family:var(--mono);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.08em;z-index:1;
+  }
+  thead th::before{content:"";} thead th:first-child::before{content:""}
+  tbody td{padding:10px 12px;background:var(--paper);border-bottom:1px solid var(--ink);border-right:1px solid var(--paper2)}
+  tbody tr:hover td{background:#FDEBEB}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+  tbody td:first-child{font-family:var(--mono);color:var(--muted)}
+  .pill{display:inline-block;padding:2px 9px;border-radius:0;font-size:11px;font-weight:600;border:2px solid var(--ink);font-family:var(--mono);letter-spacing:.04em}
+  .pill.qty-ok{background:var(--paper);color:var(--ink)}
+  .pill.qty-low{background:var(--paper);color:var(--red);border-color:var(--red)}
+  .pill.qty-zero{background:var(--red);color:var(--paper);border-color:var(--red)}
+  .pill.cat{background:var(--ink);color:var(--paper);font-size:10px}
+
+  /* ---------- Forms ---------- */
+  .formcard{padding:26px 28px;max-width:780px}
+  .formcard h2{font-family:var(--head);margin:0 0 6px;font-size:clamp(24px,3vw,38px);letter-spacing:-.04em;line-height:.9;text-transform:uppercase}
+  .formcard h2::before{content:">>> ";color:var(--red);font-family:var(--mono);font-size:.6em;vertical-align:middle}
+  .formcard p.lead{margin:0 0 8px;color:var(--muted);font-family:var(--mono);font-size:12px;border-bottom:2px solid var(--ink);padding-bottom:18px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px 20px;margin-top:18px}
+  .field{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+  .field.full{grid-column:1/-1}
+  label{font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--ink);text-transform:uppercase;letter-spacing:.08em}
+  label::before{content:"· "}
+  label .req{color:var(--red)}
+  input,select,textarea{
+    border:2px solid var(--ink);border-radius:0;padding:11px 13px;font-family:var(--mono);font-size:13px;background:var(--paper);color:var(--ink);width:100%;
+    transition:border-color .08s linear,background .08s linear;
+  }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red);background:#fff}
+  textarea{resize:vertical;min-height:66px}
+  .hint{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+  .btn{
+    border:3px solid var(--ink);border-radius:0;padding:12px 20px;font-family:var(--mono);font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;font-size:12px;
+    display:inline-flex;align-items:center;gap:12px;background:var(--paper);color:var(--ink);
+    transition:background .08s linear,color .08s linear;
+  }
+  .btn:hover{background:var(--ink);color:var(--paper)}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--ink);color:var(--paper)}
+  .btn.primary:hover{background:var(--red);border-color:var(--red)}
+  .btn.use{background:var(--red);color:var(--paper);border-color:var(--red)}
+  .btn.use:hover{background:var(--ink);border-color:var(--ink)}
+  .btn.ghost{background:var(--paper);color:var(--ink)}
+  .btn .ic{width:22px;height:22px;border-radius:0;background:transparent;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:12px;transition:transform .15s}
+  .btn:hover .ic{transform:translate(2px,-1px)}
+  .actions{display:flex;gap:14px;align-items:center;margin-top:10px;padding-top:18px;border-top:2px solid var(--ink)}
+
+  .selected-box{margin-top:10px;padding:13px 15px;border-radius:0;background:var(--paper);border:2px solid var(--ink);border-left:7px solid var(--red);font-family:var(--mono);font-size:11.5px;display:none}
+  .selected-box.show{display:block}
+  .selected-box b{color:var(--ink)}
+
+  /* ---------- BOM rows ---------- */
+  .bomrow{display:grid;grid-template-columns:1fr 120px 44px;gap:10px;margin-bottom:10px;align-items:center}
+  .bomrow .x{border:2px solid var(--ink);background:var(--paper);border-radius:0;cursor:pointer;height:44px;color:var(--red);font-family:var(--mono);font-weight:700;transition:background .08s}
+  .bomrow .x:hover{background:var(--red);color:var(--paper)}
+  .bomrow.unmatched select{border-color:var(--red);background:#FDEBEB;color:var(--red)}
+
+  /* ---------- Upload zone ---------- */
+  .upload{border:2px dashed var(--ink);border-radius:0;background:var(--paper2);padding:18px;margin:6px 0 14px;cursor:pointer;
+    transition:background .08s,border-color .08s}
+  .upload:hover,.upload.drag{background:#FDEBEB;border-color:var(--red)}
+  .upload-inner{display:flex;align-items:center;gap:16px}
+  .up-ic{width:46px;height:46px;flex:none;border-radius:0;background:var(--ink);color:var(--paper);border:2px solid var(--ink);
+    display:flex;align-items:center;justify-content:center;font-size:22px}
+  .upload strong{font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-size:12.5px}
+  .upload .btn{margin-left:auto}
+  .import-summary{display:none;margin:0 0 14px;padding:13px 15px;border-radius:0;font-family:var(--mono);font-size:11.5px;border:2px solid var(--ink)}
+  .import-summary.show{display:block}
+  .import-summary.ok{background:var(--paper);color:var(--ink);border-left:7px solid var(--ink)}
+  .import-summary.warn{background:#FDEBEB;color:var(--ink);border-color:var(--red);border-left:7px solid var(--red)}
+  .import-summary ul{margin:6px 0 0;padding-left:18px}
+
+  /* ---------- SaaS shell modules ---------- */
+  .login-screen{min-height:100vh;display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,520px);background:var(--paper);position:relative}
+  .login-screen::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:repeating-linear-gradient(135deg,var(--red) 0 14px,var(--ink) 14px 28px)}
+  .login-brand{padding:44px;display:flex;flex-direction:column;justify-content:space-between;border-right:3px solid var(--ink)}
+  .login-brand h1{font-family:var(--head);font-size:clamp(38px,7vw,86px);line-height:.82;letter-spacing:-.05em;text-transform:uppercase;margin:0}
+  .login-brand .sub{font-family:var(--mono);text-transform:uppercase;letter-spacing:.16em;font-size:12px;margin-top:18px}
+  .login-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;background:var(--ink);border:3px solid var(--ink);margin-top:36px}
+  .login-metrics div{background:var(--paper);padding:16px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em}
+  .login-metrics b{display:block;font-family:var(--head);font-size:32px;letter-spacing:-.04em;margin-top:8px}
+  .login-panel{padding:44px;display:flex;align-items:center}
+  .login-panel .formcard{max-width:none;width:100%}
+  .module-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:22px;align-items:start}
+  .span-3{grid-column:span 3}.span-4{grid-column:span 4}.span-5{grid-column:span 5}.span-6{grid-column:span 6}.span-7{grid-column:span 7}.span-8{grid-column:span 8}.span-12{grid-column:1/-1}
+  .section-title{font-family:var(--head);font-size:clamp(26px,3.2vw,44px);letter-spacing:-.045em;text-transform:uppercase;line-height:.9;margin:0 0 18px}
+  .section-title::before{content:">>> ";color:var(--red);font-family:var(--mono);font-size:.55em;vertical-align:middle}
+  .work-card{background:var(--paper);border:3px solid var(--ink);padding:16px;position:relative}
+  .work-card h3{margin:0 0 10px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;border-bottom:2px solid var(--ink);padding-bottom:10px}
+  .work-list{display:grid;gap:10px}
+  .work-item{border:2px solid var(--ink);padding:11px;background:var(--paper)}
+  .work-item.high{border-left:7px solid var(--red)}.work-item.medium{border-left:7px solid var(--ink)}.work-item.low{border-left:7px solid var(--muted)}
+  .work-item strong{display:block;text-transform:uppercase;line-height:1.15}
+  .work-meta{font-family:var(--mono);font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:5px}
+  .progress{height:14px;border:2px solid var(--ink);background:var(--paper2);margin-top:9px}
+  .progress span{display:block;height:100%;background:var(--ink)}
+  .progress span.warn{background:var(--red)}
+  .kanban{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:3px;background:var(--ink);border:3px solid var(--ink)}
+  .kanban-col{background:var(--paper);padding:12px;min-height:250px}
+  .kanban-col h3{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin:0 0 10px;display:flex;justify-content:space-between}
+
+  /* ---------- Report ---------- */
+  .badge{padding:3px 9px;border-radius:0;font-size:10px;font-weight:600;border:2px solid var(--ink);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em}
+  .badge.in{background:var(--paper);color:var(--ink)}
+  .badge.out{background:var(--red);color:var(--paper);border-color:var(--red)}
+
+  /* ---------- Electrician CRM ---------- */
+  .crm-shell{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:22px;align-items:start}
+  .crm-main{min-width:0}
+  .crm-side{max-width:none;padding:22px}
+  .crm-side h2{font-size:clamp(22px,2.4vw,32px)}
+  .crm-side .grid2{grid-template-columns:1fr 1fr;gap:12px 14px}
+  .crm-side input,.crm-side select,.crm-side textarea{padding:10px 11px;font-size:12px}
+  .crm-board{display:grid;grid-template-columns:repeat(6,minmax(160px,1fr));gap:3px;background:var(--ink);border-bottom:3px solid var(--ink);overflow:auto}
+  .crm-col{background:var(--paper);min-height:260px;padding:12px}
+  .crm-col h3{margin:0 0 10px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;display:flex;justify-content:space-between;gap:8px}
+  .crm-col h3 span:last-child{color:var(--muted);font-variant-numeric:tabular-nums}
+  .crm-card{border:2px solid var(--ink);background:var(--paper);padding:10px;margin-bottom:10px}
+  .crm-card.high{border-left:7px solid var(--red)}
+  .crm-card.medium{border-left:7px solid var(--ink)}
+  .crm-card.low{border-left:7px solid var(--muted)}
+  .crm-card-title{font-weight:800;text-transform:uppercase;letter-spacing:.01em;line-height:1.1;margin-bottom:5px}
+  .crm-card-meta{font-family:var(--mono);font-size:10.5px;color:var(--muted);line-height:1.45}
+  .crm-card-value{font-family:var(--head);font-size:20px;letter-spacing:-.03em;margin-top:8px}
+  .crm-card-actions{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+  .crm-iconbtn{width:32px;height:30px;border:2px solid var(--ink);background:var(--paper);font-family:var(--mono);font-weight:700;cursor:pointer;color:var(--ink)}
+  .crm-iconbtn:hover{background:var(--ink);color:var(--paper)}
+  .crm-iconbtn.danger{color:var(--red);border-color:var(--red)}
+  .crm-iconbtn.danger:hover{background:var(--red);color:var(--paper)}
+  .crm-subgrid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:3px;background:var(--ink)}
+  .crm-block{background:var(--paper);min-width:0}
+  .crm-block-head{font-family:var(--mono);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;border-bottom:2px solid var(--ink);padding:11px 12px;background:var(--paper2)}
+  .crm-tablewrap{max-height:340px}
+  .crm-ledger-actions{display:flex;gap:6px}
+  .crm-signal-list{padding:12px;display:grid;gap:10px;max-height:340px;overflow:auto}
+  .crm-signal{border:2px solid var(--ink);padding:10px;font-family:var(--mono);font-size:11px}
+  .crm-signal.zero{border-color:var(--red);background:#FDEBEB}
+  .crm-signal strong{display:block;font-family:var(--grot);font-size:13px;text-transform:uppercase;line-height:1.15;margin-bottom:5px}
+  .crm-activity{margin-top:20px;border:2px solid var(--ink)}
+  .crm-activity #crm-feed{padding:12px;display:grid;gap:10px;max-height:260px;overflow:auto}
+  .crm-feed-item{font-family:var(--mono);font-size:11px;border-left:5px solid var(--ink);padding:0 0 0 10px;line-height:1.5}
+  .crm-feed-item b{font-family:var(--grot);font-size:13px;text-transform:uppercase}
+  .crm-due{color:var(--red);font-weight:700}
+
+  /* ---------- Toast ---------- */
+  #toast{position:fixed;right:24px;bottom:24px;display:flex;flex-direction:column;gap:12px;z-index:80}
+  .toast{
+    background:var(--ink);color:var(--paper);padding:14px 18px;border-radius:0;border:3px solid var(--ink);border-left:7px solid var(--red);
+    font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.03em;display:flex;align-items:center;gap:10px;
+    animation:slideup .2s cubic-bezier(.2,.8,.2,1);max-width:360px;
+  }
+  .toast::before{content:"> "}
+  .toast.ok{border-left-color:var(--paper)}.toast.err{background:var(--red);border-color:var(--red);border-left-color:var(--ink)}
+  @keyframes slideup{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+  .empty{padding:48px;text-align:center;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;background:var(--paper)}
+  .empty::before{content:"// "}
+  @media(max-width:860px){
+    .stats{grid-template-columns:repeat(2,1fr)} .grid2{grid-template-columns:1fr}
+    .login-screen{grid-template-columns:1fr}.login-brand{border-right:0;border-bottom:3px solid var(--ink);padding:28px}.login-panel{padding:22px}
+    .login-metrics{grid-template-columns:1fr}.module-grid{grid-template-columns:1fr}.span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-12{grid-column:1/-1}
+    .kanban{grid-template-columns:1fr}
+    .crm-shell,.crm-subgrid{grid-template-columns:1fr}.crm-board{grid-template-columns:repeat(6,220px)}
+    .crm-side .grid2{grid-template-columns:1fr}
+    main{padding:14px} nav.tabs .tabbtn{flex:1} header.app{padding:16px 16px 0}
+  }
+</style>
+</head>
+<body>
+<section class="login-screen" id="loginScreen">
+  <div class="login-brand">
+    <div>
+      <div class="logo">SS</div>
+      <h1>Sai Samarth CRM</h1>
+      <div class="sub">Electrical Department / SaaS Operations Console</div>
+    </div>
+    <div class="login-metrics">
+      <div>Projects<b>18</b></div>
+      <div>Pipeline<b>₹12L</b></div>
+      <div>SLA Risk<b>04</b></div>
+    </div>
+  </div>
+  <div class="login-panel">
+    <div class="panel formcard">
+      <h2>Account Login</h2>
+      <p class="lead">Sign in to open the CRM operations workspace.</p>
+      <form id="loginForm">
+        <div class="field"><label>Email <span class="req">*</span></label><input id="login-email" type="email" value="admin@saisamarth.local" required /></div>
+        <div class="field"><label>Password <span class="req">*</span></label><input id="login-password" type="password" value="admin123" required /></div>
+        <div class="field"><label>Workspace</label><input id="login-workspace" value="Sai Samarth Engineering" /></div>
+        <div class="actions">
+          <button type="submit" class="btn primary">Login <span class="ic">→</span></button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<header class="app">
+  <div class="logo">SS</div>
+  <div>
+    <h1>Sai Samarth Engineering</h1>
+    <div class="sub">CRM SaaS / Electrical Department Operations</div>
+  </div>
+  <div class="spacer"></div>
+  <div>
+    <div class="accountbar">
+      <div class="userchip"><b id="sessionUser">Admin</b><span id="sessionWorkspace">Sai Samarth Engineering</span></div>
+      <button class="btn ghost" id="logoutBtn">Logout</button>
+    </div>
+    <div class="clock" id="clock"></div>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tabbtn active" data-view="dashboard"><span class="dot"></span>Dashboard</button>
+  <button class="tabbtn" data-view="projects"><span class="dot"></span>Projects</button>
+  <button class="tabbtn" data-view="ongoing"><span class="dot"></span>Ongoing</button>
+  <button class="tabbtn" data-view="priorities"><span class="dot"></span>Priorities</button>
+  <button class="tabbtn" data-view="inventory"><span class="dot"></span>Inventory</button>
+  <button class="tabbtn" data-view="management"><span class="dot"></span>Management</button>
+  <button class="tabbtn" data-view="purchase"><span class="dot"></span>Purchase</button>
+  <button class="tabbtn" data-view="electrician-crm"><span class="dot"></span>Customers</button>
+</nav>
+
+<main>
+  <!-- ================= DASHBOARD ================= -->
+  <section class="view active" id="view-dashboard">
+    <h2 class="section-title">Command Dashboard</h2>
+    <div class="stats">
+      <div class="stat panel"><div class="k">Open Pipeline</div><div class="v" id="dash-pipeline">₹0</div></div>
+      <div class="stat panel"><div class="k">Live Projects</div><div class="v" id="dash-projects">0</div></div>
+      <div class="stat panel"><div class="k">Open Purchases</div><div class="v" id="dash-purchase">0</div></div>
+      <div class="stat panel"><div class="k">Priority Risks</div><div class="v" id="dash-risk">0</div></div>
+    </div>
+    <div class="module-grid">
+      <div class="work-card span-7">
+        <h3>Ongoing Project Control</h3>
+        <div class="tablewrap crm-tablewrap">
+          <table>
+            <thead><tr><th>Project</th><th>Customer</th><th>Stage</th><th>Owner</th><th class="num">Progress</th><th>Due</th></tr></thead>
+            <tbody id="dash-project-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="work-card span-5">
+        <h3>Priority Queue</h3>
+        <div class="work-list" id="dash-priority-list"></div>
+      </div>
+      <div class="work-card span-4">
+        <h3>Inventory Risk</h3>
+        <div class="work-list" id="dash-inventory-risk"></div>
+      </div>
+      <div class="work-card span-4">
+        <h3>Purchase Watch</h3>
+        <div class="work-list" id="dash-purchase-watch"></div>
+      </div>
+      <div class="work-card span-4">
+        <h3>Management Signals</h3>
+        <div class="work-list" id="dash-management-signals"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PROJECTS ================= -->
+  <section class="view" id="view-projects">
+    <h2 class="section-title">Projects</h2>
+    <div class="crm-shell">
+      <div class="panel crm-main">
+        <div class="toolbar">
+          <input type="search" id="project-q" placeholder="Search project, customer, owner..." />
+          <select id="project-status-filter"><option value="">All Status</option><option>Planning</option><option>Procurement</option><option>Execution</option><option>Testing</option><option>Completed</option></select>
+          <select id="project-priority-filter"><option value="">All Priority</option><option>High</option><option>Medium</option><option>Low</option></select>
+          <div class="grow"></div><span class="count" id="project-count"></span>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Project</th><th>Customer</th><th>Status</th><th>Priority</th><th>Owner</th><th class="num">Value</th><th class="num">Progress</th><th>Due</th><th></th></tr></thead>
+            <tbody id="project-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <aside class="panel formcard crm-side">
+        <h2>Project Desk</h2>
+        <p class="lead">Create and track client electrical jobs, installation work, controls projects, and service commitments.</p>
+        <form id="projectForm">
+          <input type="hidden" id="project-edit-id" />
+          <div class="grid2">
+            <div class="field"><label>Project Name <span class="req">*</span></label><input id="project-name" required /></div>
+            <div class="field"><label>Customer <span class="req">*</span></label><input id="project-customer" required /></div>
+            <div class="field"><label>Status</label><select id="project-status"><option>Planning</option><option>Procurement</option><option>Execution</option><option>Testing</option><option>Completed</option></select></div>
+            <div class="field"><label>Priority</label><select id="project-priority"><option>High</option><option>Medium</option><option>Low</option></select></div>
+            <div class="field"><label>Owner</label><input id="project-owner" /></div>
+            <div class="field"><label>Due Date</label><input id="project-due" type="date" /></div>
+            <div class="field"><label>Value (₹)</label><input id="project-value" type="number" min="0" step="1000" value="0" /></div>
+            <div class="field"><label>Progress %</label><input id="project-progress" type="number" min="0" max="100" step="5" value="0" /></div>
+            <div class="field full"><label>Scope</label><textarea id="project-scope"></textarea></div>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn primary" id="project-submit">Save Project <span class="ic">+</span></button>
+            <button type="reset" class="btn ghost" id="project-clear">Clear</button>
+          </div>
+        </form>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= ONGOING ================= -->
+  <section class="view" id="view-ongoing">
+    <h2 class="section-title">Ongoing Work</h2>
+    <div class="kanban" id="ongoing-board"></div>
+  </section>
+
+  <!-- ================= PRIORITIES ================= -->
+  <section class="view" id="view-priorities">
+    <h2 class="section-title">Priorities</h2>
+    <div class="kanban" id="priority-board"></div>
+  </section>
+
+  <div class="inventory-nav-wrap" id="inventoryNavWrap">
+    <h2 class="section-title">Inventory</h2>
+    <div class="subtabs" id="inventorySubtabs">
+      <button class="tabbtn active" data-inventory-view="inventory"><span class="dot"></span>Stock Ledger</button>
+      <button class="tabbtn" data-inventory-view="add"><span class="dot"></span>Add Material</button>
+      <button class="tabbtn" data-inventory-view="use"><span class="dot"></span>Use Material</button>
+      <button class="tabbtn" data-inventory-view="bom"><span class="dot"></span>BOM Extract</button>
+      <button class="tabbtn" data-inventory-view="report"><span class="dot"></span>Work Order Report</button>
+    </div>
+  </div>
+
+  <!-- ================= INVENTORY ================= -->
+  <section class="view" id="view-inventory">
+    <div class="stats">
+      <div class="stat panel"><div class="k">Total Items</div><div class="v" id="s-items">0</div></div>
+      <div class="stat panel"><div class="k">Total Quantity</div><div class="v" id="s-qty">0 <small>units</small></div></div>
+      <div class="stat panel"><div class="k">Stock Value</div><div class="v" id="s-value">₹0</div></div>
+      <div class="stat panel"><div class="k">Out of Stock</div><div class="v" id="s-zero">0</div></div>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <input type="search" id="q" placeholder="Search name, code, description, location…" />
+        <select id="f-category"><option value="">All Categories</option></select>
+        <select id="f-group"><option value="">All Product Groups</option></select>
+        <select id="f-stock">
+          <option value="">All Stock</option>
+          <option value="in">In stock</option>
+          <option value="low">Low (1–5)</option>
+          <option value="zero">Out of stock</option>
+        </select>
+        <select id="f-sort" title="Sort inventory by">
+          <option value="sr">Sort: Sr. No.</option>
+          <option value="name">Sort: Item Name</option>
+          <option value="price">Sort: Unit Price</option>
+          <option value="qty">Sort: Quantity (NOS)</option>
+          <option value="group">Sort: Product Group</option>
+          <option value="value">Sort: Stock Value</option>
+        </select>
+        <button class="btn ghost" id="f-dir" title="Toggle ascending / descending" data-dir="asc">↑ ASC</button>
+        <div class="grow"></div>
+        <span class="count" id="rowcount"></span>
+        <button class="btn ghost" id="resetData" title="Restore original data from the Excel file">Reset Data</button>
+      </div>
+      <div class="tablewrap">
+        <table id="invtable">
+          <thead>
+            <tr>
+              <th class="num">Sr.</th><th>Item Name</th><th>Item Code</th><th>Description</th>
+              <th>Category</th><th class="num">Available Qty</th><th class="num">Unit Price</th>
+              <th class="num">Stock Value</th><th>Product Group</th><th>Base UOM</th><th>Purchase UOM</th>
+              <th>Pricing UOM</th><th class="num">Pricing Conv.</th><th class="num">Purchase Conv.</th>
+              <th>Store Type</th><th>Location</th>
+            </tr>
+          </thead>
+          <tbody id="invbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ELECTRICIAN DEPARTMENT CRM ================= -->
+  <section class="view" id="view-electrician-crm">
+    <div class="stats">
+      <div class="stat panel"><div class="k">Active Accounts</div><div class="v" id="crm-s-accounts">0</div></div>
+      <div class="stat panel"><div class="k">Open Pipeline</div><div class="v" id="crm-s-pipeline">₹0</div></div>
+      <div class="stat panel"><div class="k">Open Tasks</div><div class="v" id="crm-s-tasks">0</div></div>
+      <div class="stat panel"><div class="k">Critical Follow-Ups</div><div class="v" id="crm-s-critical">0</div></div>
+    </div>
+
+    <div class="crm-shell">
+      <div class="panel crm-main">
+        <div class="toolbar">
+          <input type="search" id="crm-q" placeholder="Search account, contact, material, owner..." />
+          <select id="crm-stage-filter">
+            <option value="">All Stages</option>
+            <option value="Lead">Lead</option>
+            <option value="Qualified">Qualified</option>
+            <option value="Quoted">Quoted</option>
+            <option value="Negotiation">Negotiation</option>
+            <option value="Won">Won</option>
+            <option value="Lost">Lost</option>
+          </select>
+          <select id="crm-priority-filter">
+            <option value="">All Priority</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <div class="grow"></div>
+          <span class="count" id="crm-count"></span>
+          <button class="btn ghost" id="crm-reset">Reset CRM</button>
+        </div>
+
+        <div class="crm-board" id="crm-board"></div>
+
+        <div class="crm-subgrid">
+          <div class="crm-block">
+            <div class="crm-block-head">Account Ledger</div>
+            <div class="tablewrap crm-tablewrap">
+              <table>
+                <thead><tr>
+                  <th>Account</th><th>Contact</th><th>Stage</th><th class="num">Value</th>
+                  <th>Material Need</th><th>Owner</th><th>Next Action</th><th></th>
+                </tr></thead>
+                <tbody id="crm-ledger"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="crm-block">
+            <div class="crm-block-head">Inventory Signals</div>
+            <div id="crm-inventory-signals" class="crm-signal-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="panel formcard crm-side">
+        <h2>Customer Desk</h2>
+        <p class="lead">Electrician department CRM for service leads, material quotations, client work, and follow-up control.</p>
+        <form id="crmForm">
+          <input type="hidden" id="crm-edit-id" />
+          <div class="grid2">
+            <div class="field"><label>Account / Company <span class="req">*</span></label><input id="crm-account" required placeholder="e.g. Apex Packaging" /></div>
+            <div class="field"><label>Contact Person <span class="req">*</span></label><input id="crm-contact" required placeholder="Name" /></div>
+            <div class="field"><label>Phone</label><input id="crm-phone" placeholder="+91..." /></div>
+            <div class="field"><label>Email</label><input id="crm-email" type="email" placeholder="name@company.com" /></div>
+            <div class="field"><label>Stage</label>
+              <select id="crm-stage">
+                <option>Lead</option><option>Qualified</option><option>Quoted</option>
+                <option>Negotiation</option><option>Won</option><option>Lost</option>
+              </select>
+            </div>
+            <div class="field"><label>Priority</label><select id="crm-priority"><option>High</option><option>Medium</option><option>Low</option></select></div>
+            <div class="field"><label>Deal Value (₹)</label><input id="crm-value" type="number" min="0" step="100" value="0" /></div>
+            <div class="field"><label>Owner</label><input id="crm-owner" placeholder="Sales / engineer owner" /></div>
+            <div class="field full"><label>Material Requirement</label><input id="crm-material" placeholder="Panels, PLC, VFD, sensors, cables..." /></div>
+            <div class="field"><label>Next Action</label><input id="crm-next-action" placeholder="Call, quote, visit, payment..." /></div>
+            <div class="field"><label>Next Date</label><input id="crm-next-date" type="date" /></div>
+            <div class="field full"><label>Notes</label><textarea id="crm-notes" placeholder="Site details, commercial terms, installation notes"></textarea></div>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn primary" id="crm-submit">Save Account <span class="ic">+</span></button>
+            <button type="reset" class="btn ghost" id="crm-clear">Clear</button>
+          </div>
+        </form>
+
+        <div class="crm-activity">
+          <div class="crm-block-head">Activity Feed</div>
+          <div id="crm-feed"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= MANAGEMENT ================= -->
+  <section class="view" id="view-management">
+    <h2 class="section-title">Management</h2>
+    <div class="module-grid">
+      <div class="work-card span-4">
+        <h3>Team Utilization</h3>
+        <div class="work-list" id="management-team"></div>
+      </div>
+      <div class="work-card span-4">
+        <h3>Approval Queue</h3>
+        <div class="work-list" id="management-approvals"></div>
+      </div>
+      <div class="work-card span-4">
+        <h3>Operational KPIs</h3>
+        <div class="work-list" id="management-kpis"></div>
+      </div>
+      <div class="panel span-12">
+        <div class="toolbar">
+          <strong style="font-size:15px">Management Control Register</strong>
+          <div class="grow"></div>
+          <span class="count" id="management-count"></span>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Owner</th><th>Role</th><th>Active Projects</th><th>Open CRM Tasks</th><th>Escalation</th><th>Capacity</th></tr></thead>
+            <tbody id="management-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PURCHASE ================= -->
+  <section class="view" id="view-purchase">
+    <h2 class="section-title">Purchase</h2>
+    <div class="stats">
+      <div class="stat panel"><div class="k">Open POs</div><div class="v" id="purchase-s-open">0</div></div>
+      <div class="stat panel"><div class="k">Committed Spend</div><div class="v" id="purchase-s-spend">₹0</div></div>
+      <div class="stat panel"><div class="k">Delayed Orders</div><div class="v" id="purchase-s-delayed">0</div></div>
+      <div class="stat panel"><div class="k">Vendor Count</div><div class="v" id="purchase-s-vendors">0</div></div>
+    </div>
+    <div class="crm-shell">
+      <div class="panel crm-main">
+        <div class="toolbar">
+          <input type="search" id="purchase-q" placeholder="Search PO, vendor, material, project..." />
+          <select id="purchase-status-filter"><option value="">All Status</option><option>Draft</option><option>Ordered</option><option>In Transit</option><option>Received</option><option>Delayed</option></select>
+          <div class="grow"></div><span class="count" id="purchase-count"></span>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>PO</th><th>Vendor</th><th>Material</th><th>Project</th><th>Status</th><th class="num">Amount</th><th>ETA</th><th></th></tr></thead>
+            <tbody id="purchase-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <aside class="panel formcard crm-side">
+        <h2>Purchase Desk</h2>
+        <p class="lead">Track vendors, purchase orders, ordered materials, arrival dates, and project-linked procurement.</p>
+        <form id="purchaseForm">
+          <input type="hidden" id="purchase-edit-id" />
+          <div class="grid2">
+            <div class="field"><label>PO Number <span class="req">*</span></label><input id="purchase-po" required /></div>
+            <div class="field"><label>Vendor <span class="req">*</span></label><input id="purchase-vendor" required /></div>
+            <div class="field full"><label>Material</label><input id="purchase-material" /></div>
+            <div class="field"><label>Project</label><input id="purchase-project" /></div>
+            <div class="field"><label>Status</label><select id="purchase-status"><option>Draft</option><option>Ordered</option><option>In Transit</option><option>Received</option><option>Delayed</option></select></div>
+            <div class="field"><label>Amount (₹)</label><input id="purchase-amount" type="number" min="0" step="100" value="0" /></div>
+            <div class="field"><label>ETA</label><input id="purchase-eta" type="date" /></div>
+            <div class="field"><label>Owner</label><input id="purchase-owner" /></div>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn primary" id="purchase-submit">Save PO <span class="ic">+</span></button>
+            <button type="reset" class="btn ghost" id="purchase-clear">Clear</button>
+          </div>
+        </form>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= ADD MATERIAL ================= -->
+  <section class="view" id="view-add">
+    <div class="panel formcard">
+      <h2>Add Material</h2>
+      <p class="lead">Record incoming stock. Quantity is added to the selected item's running total.</p>
+      <form id="addForm">
+        <div class="grid2">
+          <div class="field"><label>Sort by Product Group</label>
+            <select id="add-group"><option value="">All Product Groups</option></select>
+            <span class="hint">Narrows the item list below.</span>
+          </div>
+          <div class="field"><label>Sort items by</label>
+            <select id="add-sort">
+              <option value="name">Name (A–Z)</option>
+              <option value="code">Item Code</option>
+              <option value="qty">Stock (low → high)</option>
+              <option value="qtyd">Stock (high → low)</option>
+            </select>
+          </div>
+        </div>
+        <div class="field full">
+          <label>Item <span class="req">*</span></label>
+          <select id="add-item" required></select>
+          <div class="hint">Pick an existing item, or choose “➕ New item…” at the top to register a new material.</div>
+          <div class="selected-box" id="add-selbox"></div>
+        </div>
+        <div id="add-newfields" style="display:none">
+          <div class="grid2">
+            <div class="field"><label>New Item Name <span class="req">*</span></label><input id="add-name" placeholder="e.g. CONTACTOR 25A" /></div>
+            <div class="field"><label>Item Code <span class="req">*</span></label><input id="add-code" placeholder="e.g. LC1D25M7" /></div>
+            <div class="field full"><label>Description</label><input id="add-desc" placeholder="Full description" /></div>
+            <div class="field"><label>Category</label><input id="add-cat" placeholder="Consumables / Raw Material" value="Consumables" /></div>
+            <div class="field"><label>Product Group</label><input id="add-grp" placeholder="e.g. SCHNEIDER ELECTRIC" /></div>
+            <div class="field"><label>Unit Price (₹)</label><input id="add-price" type="number" min="0" step="0.01" value="0" /></div>
+            <div class="field"><label>Base UOM</label><input id="add-uom" placeholder="NOS / MTR / KG" value="NOS" /></div>
+            <div class="field"><label>Store Type</label><input id="add-store" value="Electrical Items Store" /></div>
+            <div class="field"><label>Location</label><input id="add-loc" placeholder="e.g. ELE-R1-A1" /></div>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Quantity to Add <span class="req">*</span></label><input id="add-qty" type="number" min="0.01" step="any" placeholder="0" required /></div>
+          <div class="field"><label>Date <span class="req">*</span></label><input id="add-date" type="date" required /></div>
+          <div class="field"><label>Material Name / Reference</label><input id="add-ref" placeholder="GRN / Invoice / batch ref (optional)" /></div>
+          <div class="field"><label>Received / Added By <span class="req">*</span></label><input id="add-by" placeholder="Person responsible" required /></div>
+          <div class="field full"><label>Remarks</label><textarea id="add-remark" placeholder="Optional notes"></textarea></div>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn primary">Add to Inventory <span class="ic">↑</span></button>
+          <button type="reset" class="btn ghost">Clear</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ================= USE MATERIAL ================= -->
+  <section class="view" id="view-use">
+    <div class="panel formcard">
+      <h2>Use Material</h2>
+      <p class="lead">Record material consumed or removed. Quantity is subtracted from the item's running total.</p>
+      <form id="useForm">
+        <div class="grid2">
+          <div class="field"><label>Sort by Product Group</label>
+            <select id="use-group"><option value="">All Product Groups</option></select>
+            <span class="hint">Narrows the item list below.</span>
+          </div>
+          <div class="field"><label>Sort items by</label>
+            <select id="use-sort">
+              <option value="name">Name (A–Z)</option>
+              <option value="code">Item Code</option>
+              <option value="qty">Stock (low → high)</option>
+              <option value="qtyd">Stock (high → low)</option>
+            </select>
+          </div>
+        </div>
+        <div class="field full">
+          <label>Item <span class="req">*</span></label>
+          <select id="use-item" required></select>
+          <div class="selected-box" id="use-selbox"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Quantity to Use / Remove <span class="req">*</span></label><input id="use-qty" type="number" min="0.01" step="any" placeholder="0" required /></div>
+          <div class="field"><label>Date <span class="req">*</span></label><input id="use-date" type="date" required /></div>
+          <div class="field"><label>Work Order / Material Name</label><input id="use-wo" placeholder="WO number or material name (optional)" /></div>
+          <div class="field"><label>Used / Removed By <span class="req">*</span></label><input id="use-by" placeholder="Person responsible" required /></div>
+          <div class="field full"><label>Purpose / Remarks</label><textarea id="use-remark" placeholder="Reason for usage or removal"></textarea></div>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn use">Deduct from Inventory <span class="ic">↓</span></button>
+          <button type="reset" class="btn ghost">Clear</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ================= BOM ================= -->
+  <section class="view" id="view-bom">
+    <div class="panel formcard" style="max-width:860px">
+      <h2>Extract Material from BOM</h2>
+      <p class="lead">Add multiple items in one Bill of Materials. Each quantity is deducted from inventory on submit.</p>
+      <form id="bomForm">
+        <div class="grid2">
+          <div class="field"><label>Work Order / BOM Name <span class="req">*</span></label><input id="bom-wo" placeholder="e.g. WO-2026-014 / Panel A" required /></div>
+          <div class="field"><label>Date <span class="req">*</span></label><input id="bom-date" type="date" required /></div>
+          <div class="field"><label>Extracted By <span class="req">*</span></label><input id="bom-by" placeholder="Person responsible" required /></div>
+        </div>
+        <div class="upload" id="bom-drop">
+          <input type="file" id="bom-file" accept=".xlsx,.xls,.csv" hidden />
+          <div class="upload-inner">
+            <div class="up-ic">⤓</div>
+            <div>
+              <strong>Upload BOM from Excel / CSV</strong>
+              <div class="hint">Click to choose a file, or drag &amp; drop here. Needs an <b>Item Code</b> or <b>Item Name</b> column and a <b>Qty</b> / <b>Quantity</b> column.</div>
+            </div>
+            <button type="button" class="btn ghost" id="bom-browse">Choose file</button>
+          </div>
+        </div>
+        <div id="bom-import-summary" class="import-summary"></div>
+
+        <label style="display:block;margin:6px 0 8px">BOM Lines <span class="req">*</span></label>
+        <div id="bomLines"></div>
+        <button type="button" class="btn ghost" id="bom-add" style="margin:4px 0 14px">＋ Add line</button>
+        <div class="field full"><label>Remarks</label><textarea id="bom-remark" placeholder="Optional notes for this BOM extraction"></textarea></div>
+        <div class="actions">
+          <button type="submit" class="btn use">Extract &amp; Deduct All <span class="ic">↓</span></button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ================= REPORT ================= -->
+  <section class="view" id="view-report">
+    <div class="panel">
+      <div class="toolbar">
+        <strong style="font-size:15px">Work Order Report</strong>
+        <span class="count" id="txcount"></span>
+        <div class="grow"></div>
+        <input type="search" id="rq" placeholder="Search item, person, work order…" style="min-width:260px" />
+        <select id="rtype"><option value="">All Movements</option><option value="IN">Stock In (Add)</option><option value="OUT">Stock Out (Use/BOM)</option></select>
+        <button class="btn ghost" id="exportCsv">Export CSV</button>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr>
+            <th>Date</th><th>Type</th><th>Item Name</th><th>Item Code</th>
+            <th class="num">Qty</th><th class="num">Balance After</th>
+            <th>Work Order / Ref</th><th>Person</th><th>Remarks</th>
+          </tr></thead>
+          <tbody id="reportbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="toast"></div>
+
+<script src="xlsx.full.min.js"></script>
+<script src="inventory_data.js"></script>
+<script>
+/* ============ STATE & PERSISTENCE ============ */
+const LS_INV="ss_inventory_v1", LS_TX="ss_transactions_v1", LS_CRM="ss_electrician_crm_v1";
+const LS_PROJECTS="ss_projects_v1", LS_PURCHASES="ss_purchase_v1", LS_SESSION="ss_crm_session_v1";
+const INVENTORY_VIEWS=["inventory","add","use","bom","report"];
+let inventory=[], transactions=[], crmRecords=[], projects=[], purchases=[], session=null;
+
+function load(){
+  const inv=localStorage.getItem(LS_INV);
+  inventory = inv ? JSON.parse(inv) : JSON.parse(JSON.stringify(window.SEED_INVENTORY));
+  transactions = JSON.parse(localStorage.getItem(LS_TX) || "[]");
+  crmRecords = JSON.parse(localStorage.getItem(LS_CRM) || "null") || JSON.parse(JSON.stringify(CRM_SEED));
+  projects = JSON.parse(localStorage.getItem(LS_PROJECTS) || "null") || JSON.parse(JSON.stringify(PROJECT_SEED));
+  purchases = JSON.parse(localStorage.getItem(LS_PURCHASES) || "null") || JSON.parse(JSON.stringify(PURCHASE_SEED));
+  session = JSON.parse(localStorage.getItem(LS_SESSION) || "null");
+}
+function save(){
+  localStorage.setItem(LS_INV, JSON.stringify(inventory));
+  localStorage.setItem(LS_TX, JSON.stringify(transactions));
+  localStorage.setItem(LS_CRM, JSON.stringify(crmRecords));
+  localStorage.setItem(LS_PROJECTS, JSON.stringify(projects));
+  localStorage.setItem(LS_PURCHASES, JSON.stringify(purchases));
+}
+function nextId(){ return inventory.reduce((m,i)=>Math.max(m,i.id),0)+1; }
+function fmtMoney(n){ return "₹"+(Math.round(n*100)/100).toLocaleString("en-IN"); }
+function fmtNum(n){ return (Math.round(n*100)/100).toLocaleString("en-IN"); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+/* ============ TOAST ============ */
+function toast(msg,type=""){
+  const t=document.createElement("div");
+  t.className="toast "+type; t.textContent=msg;
+  document.getElementById("toast").appendChild(t);
+  setTimeout(()=>{t.style.transition="opacity .4s";t.style.opacity="0";setTimeout(()=>t.remove(),400)},3200);
+}
+
+/* ============ LOGIN & NAV ============ */
+function openSession(data){
+  session=data;
+  localStorage.setItem(LS_SESSION, JSON.stringify(session));
+  document.body.classList.add("authed");
+  document.getElementById("sessionUser").textContent=session.email.split("@")[0]||"Admin";
+  document.getElementById("sessionWorkspace").textContent=session.workspace||"Sai Samarth Engineering";
+  activateView("dashboard");
+}
+document.getElementById("loginForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const email=document.getElementById("login-email").value.trim();
+  const password=document.getElementById("login-password").value.trim();
+  if(!email || !password) return toast("Email and password are required","err");
+  openSession({email,workspace:document.getElementById("login-workspace").value.trim(),loginAt:Date.now()});
+  toast("CRM workspace opened","ok");
+});
+document.getElementById("logoutBtn").addEventListener("click",()=>{
+  localStorage.removeItem(LS_SESSION);
+  session=null;
+  document.body.classList.remove("authed");
+});
+function activateView(view){
+  document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
+  const target=document.getElementById("view-"+view);
+  if(target) target.classList.add("active");
+
+  const topView=INVENTORY_VIEWS.includes(view) ? "inventory" : view;
+  document.querySelectorAll("#tabs .tabbtn").forEach(x=>x.classList.toggle("active",x.dataset.view===topView));
+  document.getElementById("inventoryNavWrap").classList.toggle("active",INVENTORY_VIEWS.includes(view));
+  document.querySelectorAll("#inventorySubtabs .tabbtn").forEach(x=>x.classList.toggle("active",x.dataset.inventoryView===view));
+}
+document.getElementById("tabs").addEventListener("click",e=>{
+  const b=e.target.closest(".tabbtn"); if(!b) return;
+  activateView(b.dataset.view);
+});
+document.getElementById("inventorySubtabs").addEventListener("click",e=>{
+  const b=e.target.closest(".tabbtn"); if(!b) return;
+  activateView(b.dataset.inventoryView);
+});
+
+/* ============ INVENTORY RENDER ============ */
+function stockClass(q){ return q<=0?"qty-zero":(q<=5?"qty-low":"qty-ok"); }
+
+function populateFilters(){
+  const cats=[...new Set(inventory.map(i=>i.category).filter(Boolean))].sort();
+  const grps=[...new Set(inventory.map(i=>i.productGroup).filter(Boolean))].sort();
+  const fc=document.getElementById("f-category"), fg=document.getElementById("f-group");
+  fc.length=1; fg.length=1;
+  cats.forEach(c=>fc.add(new Option(c,c)));
+  grps.forEach(g=>fg.add(new Option(g,g)));
+}
+
+const INV_SORTERS={
+  sr:(a,b)=>a.id-b.id,
+  name:(a,b)=>a.itemName.localeCompare(b.itemName),
+  price:(a,b)=>a.unitPrice-b.unitPrice,
+  qty:(a,b)=>a.qty-b.qty,
+  group:(a,b)=>(a.productGroup||"").localeCompare(b.productGroup||"")||a.itemName.localeCompare(b.itemName),
+  value:(a,b)=>(a.qty*a.unitPrice)-(b.qty*b.unitPrice),
+};
+function renderInventory(){
+  const q=document.getElementById("q").value.toLowerCase().trim();
+  const fc=document.getElementById("f-category").value;
+  const fg=document.getElementById("f-group").value;
+  const fs=document.getElementById("f-stock").value;
+  const sortKey=document.getElementById("f-sort").value;
+  const dir=document.getElementById("f-dir").dataset.dir==="desc"?-1:1;
+  const body=document.getElementById("invbody"); body.innerHTML="";
+
+  const rows=inventory.filter(it=>{
+    if(fc && it.category!==fc) return false;
+    if(fg && it.productGroup!==fg) return false;
+    if(fs==="in" && it.qty<=0) return false;
+    if(fs==="low" && !(it.qty>0&&it.qty<=5)) return false;
+    if(fs==="zero" && it.qty>0) return false;
+    if(q){
+      const hay=(it.itemName+" "+it.itemCode+" "+it.description+" "+it.location+" "+it.productGroup).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  rows.sort((a,b)=>(INV_SORTERS[sortKey]||INV_SORTERS.sr)(a,b)*dir);
+
+  let shown=0;
+  rows.forEach(it=>{
+    shown++;
+    const val=it.qty*it.unitPrice;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td class="num">${it.id}</td>
+      <td><strong>${esc(it.itemName)}</strong></td>
+      <td>${esc(it.itemCode)}</td>
+      <td>${esc(it.description)}</td>
+      <td>${it.category?`<span class="pill cat">${esc(it.category)}</span>`:""}</td>
+      <td class="num"><span class="pill ${stockClass(it.qty)}">${fmtNum(it.qty)}</span></td>
+      <td class="num">${fmtNum(it.unitPrice)}</td>
+      <td class="num">${fmtNum(val)}</td>
+      <td>${esc(it.productGroup)}</td>
+      <td>${esc(it.baseUOM)}</td>
+      <td>${esc(it.purchaseUOM)}</td>
+      <td>${esc(it.pricingUOM)}</td>
+      <td class="num">${esc(it.pricingConv)}</td>
+      <td class="num">${esc(it.purchaseConv)}</td>
+      <td>${esc(it.storeType)}</td>
+      <td>${esc(it.location)}</td>`;
+    body.appendChild(tr);
+  });
+  if(!shown) body.innerHTML=`<tr><td colspan="16" class="empty">No items match your filters.</td></tr>`;
+  document.getElementById("rowcount").textContent=`Showing ${shown} of ${inventory.length} items`;
+  renderStats();
+}
+function renderStats(){
+  const totalQty=inventory.reduce((s,i)=>s+i.qty,0);
+  const totalVal=inventory.reduce((s,i)=>s+i.qty*i.unitPrice,0);
+  const zero=inventory.filter(i=>i.qty<=0).length;
+  document.getElementById("s-items").textContent=inventory.length;
+  document.getElementById("s-qty").innerHTML=fmtNum(totalQty)+' <small>units</small>';
+  document.getElementById("s-value").textContent=fmtMoney(totalVal);
+  document.getElementById("s-zero").textContent=zero;
+}
+function esc(s){ return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+["q","f-category","f-group","f-stock","f-sort"].forEach(id=>
+  document.getElementById(id).addEventListener("input",renderInventory));
+
+document.getElementById("f-dir").addEventListener("click",e=>{
+  const b=e.currentTarget;
+  const desc=b.dataset.dir!=="desc";
+  b.dataset.dir=desc?"desc":"asc";
+  b.textContent=desc?"↓ DESC":"↑ ASC";
+  renderInventory();
+});
+
+document.getElementById("resetData").addEventListener("click",()=>{
+  if(confirm("Restore inventory to the original Excel data? This clears all added/used history.")){
+    inventory=JSON.parse(JSON.stringify(window.SEED_INVENTORY));
+    transactions=[]; save(); refreshAll(); toast("Data reset to original file","ok");
+  }
+});
+
+/* ============ ITEM SELECTORS ============ */
+const SORTERS={
+  name:(a,b)=>a.itemName.localeCompare(b.itemName),
+  code:(a,b)=>a.itemCode.localeCompare(b.itemCode),
+  qty:(a,b)=>a.qty-b.qty,
+  qtyd:(a,b)=>b.qty-a.qty,
+};
+function fillItemSelect(sel,{withNew=false,group="",sort="name"}={}){
+  const keep=sel.value;
+  sel.innerHTML="";
+  if(withNew){ sel.add(new Option("➕  New item…","__new__")); }
+  const ph=new Option("Select an item…",""); ph.disabled=true; ph.selected=true; sel.add(ph);
+  inventory.filter(it=>!group||it.productGroup===group)
+    .sort(SORTERS[sort]||SORTERS.name)
+    .forEach(it=>{
+      sel.add(new Option(`${it.itemName} — ${it.itemCode}  (stock: ${fmtNum(it.qty)} ${it.baseUOM||""})`, it.id));
+    });
+  if(keep && [...sel.options].some(o=>o.value===keep)) sel.value=keep;
+}
+function fillGroupSelect(sel){
+  const cur=sel.value;
+  const grps=[...new Set(inventory.map(i=>i.productGroup).filter(Boolean))].sort();
+  sel.length=1; // keep the "All Product Groups" option
+  grps.forEach(g=>sel.add(new Option(g,g)));
+  if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
+}
+function itemById(id){ return inventory.find(i=>i.id==id); }
+function selBoxHtml(it){
+  return `Current stock: <b>${fmtNum(it.qty)} ${esc(it.baseUOM)}</b> &nbsp;·&nbsp; Location: <b>${esc(it.location)||"—"}</b> &nbsp;·&nbsp; ${esc(it.productGroup)||""}`;
+}
+
+/* ============ ADD MATERIAL ============ */
+const addItemSel=document.getElementById("add-item");
+const addGroupSel=document.getElementById("add-group");
+const addSortSel=document.getElementById("add-sort");
+function refillAddItems(){
+  fillItemSelect(addItemSel,{withNew:true,group:addGroupSel.value,sort:addSortSel.value});
+  addItemSel.dispatchEvent(new Event("change"));
+}
+addGroupSel.addEventListener("change",refillAddItems);
+addSortSel.addEventListener("change",refillAddItems);
+addItemSel.addEventListener("change",()=>{
+  const isNew=addItemSel.value==="__new__";
+  document.getElementById("add-newfields").style.display=isNew?"block":"none";
+  const box=document.getElementById("add-selbox");
+  if(!isNew && addItemSel.value){ box.classList.add("show"); box.innerHTML=selBoxHtml(itemById(addItemSel.value)); }
+  else box.classList.remove("show");
+});
+document.getElementById("addForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const qty=parseFloat(document.getElementById("add-qty").value);
+  const by=document.getElementById("add-by").value.trim();
+  const date=document.getElementById("add-date").value;
+  const ref=document.getElementById("add-ref").value.trim();
+  const remark=document.getElementById("add-remark").value.trim();
+  if(!(qty>0)) return toast("Enter a quantity greater than 0","err");
+
+  let it;
+  if(addItemSel.value==="__new__"){
+    const name=document.getElementById("add-name").value.trim();
+    const code=document.getElementById("add-code").value.trim();
+    if(!name||!code) return toast("New item needs a name and code","err");
+    it={ id:nextId(), itemName:name, itemCode:code,
+      description:document.getElementById("add-desc").value.trim()||name,
+      category:document.getElementById("add-cat").value.trim(),
+      qty:0, unitPrice:parseFloat(document.getElementById("add-price").value)||0,
+      productGroup:document.getElementById("add-grp").value.trim(),
+      baseUOM:document.getElementById("add-uom").value.trim(),
+      purchaseUOM:document.getElementById("add-uom").value.trim(), pricingUOM:document.getElementById("add-uom").value.trim(),
+      pricingConv:"1", purchaseConv:"1",
+      storeType:document.getElementById("add-store").value.trim(),
+      location:document.getElementById("add-loc").value.trim() };
+    inventory.push(it);
+  } else {
+    it=itemById(addItemSel.value);
+    if(!it) return toast("Select an item","err");
+  }
+  it.qty+=qty;
+  logTx({type:"IN",item:it,qty,balance:it.qty,date,wo:ref,person:by,remark});
+  save(); refreshAll();
+  toast(`Added ${fmtNum(qty)} to ${it.itemName}. New stock: ${fmtNum(it.qty)}`,"ok");
+  e.target.reset(); document.getElementById("add-newfields").style.display="none";
+  document.getElementById("add-selbox").classList.remove("show");
+  document.getElementById("add-date").value=todayStr();
+});
+
+/* ============ USE MATERIAL ============ */
+const useItemSel=document.getElementById("use-item");
+const useGroupSel=document.getElementById("use-group");
+const useSortSel=document.getElementById("use-sort");
+function refillUseItems(){
+  fillItemSelect(useItemSel,{group:useGroupSel.value,sort:useSortSel.value});
+  useItemSel.dispatchEvent(new Event("change"));
+}
+useGroupSel.addEventListener("change",refillUseItems);
+useSortSel.addEventListener("change",refillUseItems);
+useItemSel.addEventListener("change",()=>{
+  const box=document.getElementById("use-selbox");
+  if(useItemSel.value){ box.classList.add("show"); box.innerHTML=selBoxHtml(itemById(useItemSel.value)); }
+  else box.classList.remove("show");
+});
+document.getElementById("useForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const it=itemById(useItemSel.value);
+  if(!it) return toast("Select an item","err");
+  const qty=parseFloat(document.getElementById("use-qty").value);
+  const by=document.getElementById("use-by").value.trim();
+  const date=document.getElementById("use-date").value;
+  if(!(qty>0)) return toast("Enter a quantity greater than 0","err");
+  if(qty>it.qty && !confirm(`Only ${fmtNum(it.qty)} in stock. Continue and go to ${fmtNum(it.qty-qty)}?`)) return;
+  it.qty-=qty;
+  logTx({type:"OUT",item:it,qty,balance:it.qty,date,
+    wo:document.getElementById("use-wo").value.trim(),person:by,
+    remark:document.getElementById("use-remark").value.trim(),src:"USE"});
+  save(); refreshAll();
+  toast(`Used ${fmtNum(qty)} of ${it.itemName}. Remaining: ${fmtNum(it.qty)}`,"ok");
+  e.target.reset(); document.getElementById("use-selbox").classList.remove("show");
+  document.getElementById("use-date").value=todayStr();
+});
+
+/* ============ BOM ============ */
+function addBomLine({itemId="",qty="",unmatched=false}={}){
+  const wrap=document.getElementById("bomLines");
+  const row=document.createElement("div"); row.className="bomrow"+(unmatched?" unmatched":"");
+  const sel=document.createElement("select"); fillItemSelect(sel);
+  if(itemId) sel.value=String(itemId);
+  sel.addEventListener("change",()=>row.classList.remove("unmatched"));
+  const q=document.createElement("input"); q.type="number"; q.min="0.01"; q.step="any"; q.placeholder="Qty";
+  if(qty!=="") q.value=qty;
+  const x=document.createElement("button"); x.type="button"; x.className="x"; x.textContent="✕";
+  x.onclick=()=>row.remove();
+  row.append(sel,q,x); wrap.appendChild(row);
+  return row;
+}
+document.getElementById("bom-add").addEventListener("click",()=>addBomLine());
+
+/* ---- BOM Excel / CSV import ---- */
+const norm=s=>String(s==null?"":s).trim().toUpperCase().replace(/\s+/g," ");
+function matchItem(code,name){
+  const c=norm(code), n=norm(name);
+  if(c){
+    const byCode=inventory.filter(it=>norm(it.itemCode)===c);
+    if(byCode.length===1) return byCode[0];
+    if(byCode.length>1){               // duplicate codes — disambiguate by name
+      const both=byCode.find(it=>norm(it.itemName)===n);
+      return both||byCode[0];
+    }
+  }
+  if(n){
+    const byName=inventory.find(it=>norm(it.itemName)===n);
+    if(byName) return byName;
+    const partial=inventory.find(it=>norm(it.itemName).includes(n)||n.includes(norm(it.itemName)));
+    if(partial) return partial;
+  }
+  return null;
+}
+function findCol(headers,keys,exclude=[]){
+  // prefer exact header match, then substring; never reuse an excluded column
+  for(let i=0;i<headers.length;i++){
+    if(exclude.includes(i)) continue;
+    if(keys.includes(norm(headers[i]))) return i;
+  }
+  for(let i=0;i<headers.length;i++){
+    if(exclude.includes(i)) continue;
+    const h=norm(headers[i]);
+    if(keys.some(k=>h.includes(k))) return i;
+  }
+  return -1;
+}
+function importBomRows(rows){
+  // rows: array of arrays (first row = header). Find header row = first row with text.
+  let hi=rows.findIndex(r=>r.some(c=>String(c).trim()!==""));
+  if(hi<0) return toast("File appears empty","err");
+  const headers=rows[hi].map(c=>String(c||""));
+  const ciCode=findCol(headers,["ITEM CODE","CODE","PART NO","PART NUMBER","PART"]);
+  const ciName=findCol(headers,["ITEM NAME","NAME","DESCRIPTION","MATERIAL","ITEM"],[ciCode]);
+  const ciQty =findCol(headers,["QTY","QUANTITY","NOS","REQD","REQUIRED"],[ciCode,ciName]);
+  if(ciCode<0 && ciName<0) return toast("No 'Item Code' or 'Item Name' column found","err");
+  if(ciQty<0) return toast("No 'Qty' / 'Quantity' column found","err");
+
+  document.getElementById("bomLines").innerHTML="";
+  let matched=0; const misses=[];
+  for(let r=hi+1;r<rows.length;r++){
+    const row=rows[r]; if(!row || row.every(c=>String(c).trim()==="")) continue;
+    const code=ciCode>=0?row[ciCode]:"";
+    const name=ciName>=0?row[ciName]:"";
+    const qv=parseFloat(String(row[ciQty]).replace(/[^0-9.\-]/g,""));
+    if(!code && !name) continue;
+    const it=matchItem(code,name);
+    if(it){ matched++; addBomLine({itemId:it.id,qty:isNaN(qv)?"":qv}); }
+    else { misses.push((code||name||"row "+(r+1))); addBomLine({qty:isNaN(qv)?"":qv,unmatched:true}); }
+  }
+  if(!matched && !misses.length){ addBomLine(); return toast("No data rows found in file","err"); }
+
+  const box=document.getElementById("bom-import-summary");
+  box.className="import-summary show "+(misses.length?"warn":"ok");
+  box.innerHTML = misses.length
+    ? `<b>${matched}</b> item(s) matched, <b>${misses.length}</b> not found — pick them manually (highlighted red):`
+      +`<ul>${misses.slice(0,12).map(m=>`<li>${esc(m)}</li>`).join("")}${misses.length>12?`<li>…and ${misses.length-12} more</li>`:""}</ul>`
+    : `✓ All <b>${matched}</b> item(s) matched and loaded into BOM lines. Review quantities, then Extract &amp; Deduct.`;
+  toast(`Imported ${matched+misses.length} line(s) from file`,misses.length?"":"ok");
+}
+function handleBomFile(file){
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:"array"});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:true});
+      importBomRows(rows);
+    }catch(err){ console.error(err); toast("Could not read this file","err"); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+const bomDrop=document.getElementById("bom-drop"), bomFile=document.getElementById("bom-file");
+bomDrop.addEventListener("click",()=>bomFile.click());
+document.getElementById("bom-browse").addEventListener("click",e=>{e.stopPropagation();bomFile.click();});
+bomFile.addEventListener("change",e=>{ handleBomFile(e.target.files[0]); bomFile.value=""; });
+["dragover","dragenter"].forEach(ev=>bomDrop.addEventListener(ev,e=>{e.preventDefault();bomDrop.classList.add("drag");}));
+["dragleave","drop"].forEach(ev=>bomDrop.addEventListener(ev,e=>{e.preventDefault();bomDrop.classList.remove("drag");}));
+bomDrop.addEventListener("drop",e=>handleBomFile(e.dataTransfer.files[0]));
+document.getElementById("bomForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const wo=document.getElementById("bom-wo").value.trim();
+  const by=document.getElementById("bom-by").value.trim();
+  const date=document.getElementById("bom-date").value;
+  const remark=document.getElementById("bom-remark").value.trim();
+  const rows=[...document.querySelectorAll("#bomLines .bomrow")];
+  const lines=[];
+  for(const r of rows){
+    const id=r.querySelector("select").value;
+    const q=parseFloat(r.querySelector("input").value);
+    if(!id) continue;
+    if(!(q>0)){ return toast("Each BOM line needs a quantity > 0","err"); }
+    lines.push({it:itemById(id),q});
+  }
+  if(!lines.length) return toast("Add at least one BOM line","err");
+  const short=lines.filter(l=>l.q>l.it.qty);
+  if(short.length && !confirm(`${short.length} line(s) exceed available stock and will go negative. Continue?`)) return;
+  lines.forEach(({it,q})=>{
+    it.qty-=q;
+    logTx({type:"OUT",item:it,qty:q,balance:it.qty,date,wo,person:by,remark,src:"BOM"});
+  });
+  save(); refreshAll();
+  toast(`Extracted ${lines.length} item(s) for ${wo}`,"ok");
+  e.target.reset(); document.getElementById("bomLines").innerHTML=""; addBomLine();
+  document.getElementById("bom-import-summary").className="import-summary";
+  document.getElementById("bom-date").value=todayStr();
+});
+
+/* ============ TRANSACTIONS / REPORT ============ */
+function logTx({type,item,qty,balance,date,wo,person,remark,src}){
+  transactions.unshift({
+    ts:Date.now(), date:date||todayStr(), type,
+    itemName:item.itemName, itemCode:item.itemCode,
+    qty, balance, wo:wo||"", person:person||"", remark:remark||"",
+    src: src||(type==="IN"?"ADD":"USE")
+  });
+}
+function renderReport(){
+  const q=document.getElementById("rq").value.toLowerCase().trim();
+  const ft=document.getElementById("rtype").value;
+  const body=document.getElementById("reportbody"); body.innerHTML="";
+  let shown=0;
+  transactions.forEach(t=>{
+    if(ft && t.type!==ft) return;
+    if(q){
+      const hay=(t.itemName+" "+t.itemCode+" "+t.person+" "+t.wo+" "+t.remark).toLowerCase();
+      if(!hay.includes(q)) return;
+    }
+    shown++;
+    const srcLabel=t.src==="BOM"?"BOM":(t.type==="IN"?"Add":"Use");
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${esc(t.date)}</td>
+      <td><span class="badge ${t.type==="IN"?"in":"out"}">${t.type==="IN"?"▲ IN":"▼ OUT"} · ${srcLabel}</span></td>
+      <td><strong>${esc(t.itemName)}</strong></td>
+      <td>${esc(t.itemCode)}</td>
+      <td class="num">${t.type==="IN"?"+":"−"}${fmtNum(t.qty)}</td>
+      <td class="num">${fmtNum(t.balance)}</td>
+      <td>${esc(t.wo)||"—"}</td>
+      <td>${esc(t.person)||"—"}</td>
+      <td>${esc(t.remark)||""}</td>`;
+    body.appendChild(tr);
+  });
+  if(!shown) body.innerHTML=`<tr><td colspan="9" class="empty">No movements recorded yet. Add or use material to see entries here.</td></tr>`;
+  document.getElementById("txcount").textContent=`${transactions.length} total movements`;
+}
+document.getElementById("rq").addEventListener("input",renderReport);
+document.getElementById("rtype").addEventListener("change",renderReport);
+document.getElementById("exportCsv").addEventListener("click",()=>{
+  if(!transactions.length) return toast("Nothing to export","err");
+  const head=["Date","Type","Source","Item Name","Item Code","Qty","Balance After","Work Order/Ref","Person","Remarks"];
+  const rows=transactions.map(t=>[t.date,t.type,t.src,t.itemName,t.itemCode,
+    (t.type==="IN"?"+":"-")+t.qty,t.balance,t.wo,t.person,t.remark]);
+  const csv=[head,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download="work_order_report.csv"; a.click();
+});
+
+/* ============ SAAS MODULE DATA ============ */
+const PROJECT_SEED=[
+  {id:1,name:"Line 3 Panel Retrofit",customer:"Apex Packaging",status:"Execution",priority:"High",owner:"Nilesh",due:"2026-06-24",value:185000,progress:62,scope:"MCC panel rewiring, VFD integration, overload relay replacement."},
+  {id:2,name:"Dairy PLC + HMI Upgrade",customer:"Metro Dairy",status:"Procurement",priority:"High",owner:"Prakash",due:"2026-06-28",value:320000,progress:38,scope:"PLC, HMI, sensor inputs, commissioning and operator training."},
+  {id:3,name:"Sensor Reliability Audit",customer:"BlueLine Pharma",status:"Planning",priority:"Medium",owner:"Kiran",due:"2026-07-02",value:94000,progress:18,scope:"Photoelectric sensor mapping and cable replacement plan."},
+  {id:4,name:"Spares Starter Kit",customer:"Orion Foods",status:"Testing",priority:"Low",owner:"Nilesh",due:"2026-06-21",value:45000,progress:82,scope:"MCB, RCCB, push button and indicator spares package."},
+  {id:5,name:"Servo Drive Dispatch",customer:"Zenith Automation",status:"Completed",priority:"Medium",owner:"Prakash",due:"2026-06-17",value:128000,progress:100,scope:"Servo drive, PLC extension cards, packing and delivery confirmation."}
+];
+const PURCHASE_SEED=[
+  {id:1,po:"PO-2606-014",vendor:"Schneider Electric",material:"Contactors, overload relays, MPCB",project:"Line 3 Panel Retrofit",status:"Ordered",amount:72000,eta:"2026-06-19",owner:"Nilesh"},
+  {id:2,po:"PO-2606-018",vendor:"Mitsubishi",material:"PLC, HMI, extension cards",project:"Dairy PLC + HMI Upgrade",status:"In Transit",amount:164000,eta:"2026-06-22",owner:"Prakash"},
+  {id:3,po:"PO-2606-020",vendor:"SICK India",material:"Photoelectric sensors and cables",project:"Sensor Reliability Audit",status:"Delayed",amount:38500,eta:"2026-06-16",owner:"Kiran"},
+  {id:4,po:"PO-2606-025",vendor:"Polycab",material:"Control cables and ferrules",project:"Line 3 Panel Retrofit",status:"Draft",amount:26500,eta:"2026-06-27",owner:"Nilesh"}
+];
+const MANAGEMENT_TEAM=[
+  {owner:"Nilesh",role:"Electrical Lead",capacity:86},
+  {owner:"Prakash",role:"Automation Lead",capacity:78},
+  {owner:"Kiran",role:"Service Engineer",capacity:64},
+  {owner:"Aarti",role:"Purchase Controller",capacity:58}
+];
+
+function priorityRank(p){ return {High:0,Medium:1,Low:2}[p] ?? 3; }
+function dueSoon(date){ return date && date<=todayStr(); }
+function projectNextId(){ return projects.reduce((m,p)=>Math.max(m,p.id),0)+1; }
+function purchaseNextId(){ return purchases.reduce((m,p)=>Math.max(m,p.id),0)+1; }
+
+function renderDashboard(){
+  const openProjects=projects.filter(p=>p.status!=="Completed");
+  const pipeline=crmRecords.filter(r=>!["Won","Lost"].includes(r.stage)).reduce((s,r)=>s+(Number(r.value)||0),0);
+  const openPOs=purchases.filter(p=>p.status!=="Received");
+  const risks=[
+    ...projects.filter(p=>p.priority==="High" || dueSoon(p.due)),
+    ...crmRecords.filter(r=>r.priority==="High" || crmDateDue(r)),
+    ...purchases.filter(p=>p.status==="Delayed" || dueSoon(p.eta))
+  ];
+  document.getElementById("dash-pipeline").textContent=fmtMoney(pipeline);
+  document.getElementById("dash-projects").textContent=openProjects.length;
+  document.getElementById("dash-purchase").textContent=openPOs.length;
+  document.getElementById("dash-risk").textContent=risks.length;
+
+  document.getElementById("dash-project-body").innerHTML=openProjects.slice(0,6).map(p=>`
+    <tr><td><strong>${esc(p.name)}</strong></td><td>${esc(p.customer)}</td><td>${esc(p.status)}</td><td>${esc(p.owner)}</td>
+    <td class="num">${fmtNum(p.progress)}%</td><td class="${dueSoon(p.due)?"crm-due":""}">${esc(p.due)||"—"}</td></tr>`).join("") || `<tr><td colspan="6" class="empty">No active projects.</td></tr>`;
+
+  const priorityItems=[
+    ...projects.map(p=>({title:p.name,meta:`Project · ${p.customer} · ${p.owner}`,priority:p.priority,due:p.due})),
+    ...crmRecords.map(r=>({title:r.account,meta:`CRM · ${r.nextAction||"Follow-up"} · ${r.owner||"Unassigned"}`,priority:r.priority,due:r.nextDate}))
+  ].sort((a,b)=>priorityRank(a.priority)-priorityRank(b.priority) || (a.due||"9999").localeCompare(b.due||"9999")).slice(0,5);
+  document.getElementById("dash-priority-list").innerHTML=priorityItems.map(item=>workItem(item)).join("");
+
+  const low=inventory.filter(it=>it.qty<=5).sort((a,b)=>a.qty-b.qty).slice(0,4);
+  document.getElementById("dash-inventory-risk").innerHTML=low.map(it=>workItem({title:it.itemName,meta:`${it.itemCode||"No code"} · ${fmtNum(it.qty)} ${it.baseUOM||""} · ${it.location||"No location"}`,priority:it.qty<=0?"High":"Medium"})).join("") || `<div class="empty">No low-stock signals.</div>`;
+
+  document.getElementById("dash-purchase-watch").innerHTML=openPOs.slice(0,4).map(po=>workItem({title:po.po,meta:`${po.vendor} · ${po.material} · ETA ${po.eta||"—"}`,priority:po.status==="Delayed"?"High":"Medium"})).join("") || `<div class="empty">No open purchase orders.</div>`;
+  document.getElementById("dash-management-signals").innerHTML=MANAGEMENT_TEAM.map(t=>workItem({title:t.owner,meta:`${t.role} · ${t.capacity}% capacity`,priority:t.capacity>80?"High":(t.capacity>65?"Medium":"Low"),progress:t.capacity})).join("");
+}
+function workItem({title,meta,priority,progress}){
+  const cls=String(priority||"Medium").toLowerCase();
+  return `<div class="work-item ${cls}"><strong>${esc(title)}</strong><div class="work-meta">${esc(meta)||""}</div>${progress!=null?`<div class="progress"><span class="${progress>80?"warn":""}" style="width:${Math.max(0,Math.min(100,progress))}%"></span></div>`:""}</div>`;
+}
+
+function projectFiltered(){
+  const q=document.getElementById("project-q").value.toLowerCase().trim();
+  const status=document.getElementById("project-status-filter").value;
+  const priority=document.getElementById("project-priority-filter").value;
+  return projects.filter(p=>{
+    if(status && p.status!==status) return false;
+    if(priority && p.priority!==priority) return false;
+    if(q && ![p.name,p.customer,p.status,p.priority,p.owner,p.scope].join(" ").toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a,b)=>priorityRank(a.priority)-priorityRank(b.priority) || (a.due||"9999").localeCompare(b.due||"9999"));
+}
+function renderProjects(){
+  const rows=projectFiltered();
+  document.getElementById("project-count").textContent=`${rows.length} of ${projects.length} projects`;
+  document.getElementById("project-body").innerHTML=rows.map(p=>`
+    <tr><td><strong>${esc(p.name)}</strong><br><span class="crm-card-meta">${esc(p.scope)||""}</span></td><td>${esc(p.customer)}</td>
+    <td>${esc(p.status)}</td><td><span class="pill ${p.priority==="High"?"qty-low":"qty-ok"}">${esc(p.priority)}</span></td>
+    <td>${esc(p.owner)||"—"}</td><td class="num">${fmtMoney(Number(p.value)||0)}</td><td class="num">${fmtNum(p.progress)}%</td>
+    <td class="${dueSoon(p.due)&&p.status!=="Completed"?"crm-due":""}">${esc(p.due)||"—"}</td>
+    <td><div class="crm-ledger-actions"><button class="crm-iconbtn" data-project-action="edit" data-id="${p.id}">E</button><button class="crm-iconbtn danger" data-project-action="delete" data-id="${p.id}">X</button></div></td></tr>`).join("") || `<tr><td colspan="9" class="empty">No projects match your filters.</td></tr>`;
+}
+function fillProjectForm(p){
+  document.getElementById("project-edit-id").value=p.id;
+  document.getElementById("project-name").value=p.name||"";
+  document.getElementById("project-customer").value=p.customer||"";
+  document.getElementById("project-status").value=p.status||"Planning";
+  document.getElementById("project-priority").value=p.priority||"Medium";
+  document.getElementById("project-owner").value=p.owner||"";
+  document.getElementById("project-due").value=p.due||"";
+  document.getElementById("project-value").value=p.value||0;
+  document.getElementById("project-progress").value=p.progress||0;
+  document.getElementById("project-scope").value=p.scope||"";
+  document.getElementById("project-submit").innerHTML='Update Project <span class="ic">+</span>';
+}
+function clearProjectForm(){
+  document.getElementById("project-edit-id").value="";
+  document.getElementById("project-submit").innerHTML='Save Project <span class="ic">+</span>';
+}
+document.getElementById("projectForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const id=document.getElementById("project-edit-id").value;
+  const payload={
+    name:document.getElementById("project-name").value.trim(),
+    customer:document.getElementById("project-customer").value.trim(),
+    status:document.getElementById("project-status").value,
+    priority:document.getElementById("project-priority").value,
+    owner:document.getElementById("project-owner").value.trim(),
+    due:document.getElementById("project-due").value,
+    value:parseFloat(document.getElementById("project-value").value)||0,
+    progress:parseFloat(document.getElementById("project-progress").value)||0,
+    scope:document.getElementById("project-scope").value.trim()
+  };
+  if(!payload.name || !payload.customer) return toast("Project and customer are required","err");
+  if(id){ Object.assign(projects.find(p=>p.id==id),payload); toast("Project updated","ok"); }
+  else { projects.unshift({id:projectNextId(),...payload}); toast("Project added","ok"); }
+  save(); refreshAll(); e.target.reset(); clearProjectForm();
+});
+document.getElementById("project-clear").addEventListener("click",clearProjectForm);
+["project-q","project-status-filter","project-priority-filter"].forEach(id=>document.getElementById(id).addEventListener("input",renderProjects));
+document.getElementById("view-projects").addEventListener("click",e=>{
+  const b=e.target.closest("[data-project-action]"); if(!b) return;
+  const p=projects.find(x=>x.id==b.dataset.id); if(!p) return;
+  if(b.dataset.projectAction==="edit"){ fillProjectForm(p); document.getElementById("project-name").focus(); }
+  if(b.dataset.projectAction==="delete" && confirm(`Delete ${p.name}?`)){ projects=projects.filter(x=>x.id!==p.id); save(); refreshAll(); toast("Project deleted","ok"); }
+});
+
+function renderOngoing(){
+  const groups=["Procurement","Execution","Testing"];
+  const board=document.getElementById("ongoing-board"); board.innerHTML="";
+  groups.forEach(group=>{
+    const rows=projects.filter(p=>p.status===group).sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999"));
+    const col=document.createElement("div"); col.className="kanban-col";
+    col.innerHTML=`<h3><span>${group}</span><span>${rows.length}</span></h3>`+rows.map(p=>workItem({title:p.name,meta:`${p.customer} · ${p.owner||"Unassigned"} · ${p.progress}% · Due ${p.due||"—"}`,priority:p.priority,progress:p.progress})).join("");
+    if(!rows.length) col.innerHTML+=`<div class="empty">No ${group} work.</div>`;
+    board.appendChild(col);
+  });
+}
+function renderPriorities(){
+  const groups=["High","Medium","Low"];
+  const board=document.getElementById("priority-board"); board.innerHTML="";
+  groups.forEach(priority=>{
+    const projectItems=projects.filter(p=>p.priority===priority).map(p=>({title:p.name,meta:`Project · ${p.customer} · ${p.status} · ${p.owner||"Unassigned"}`,priority,progress:p.progress}));
+    const crmItems=crmRecords.filter(r=>r.priority===priority).map(r=>({title:r.account,meta:`CRM · ${r.nextAction||"No action"} · ${r.owner||"Unassigned"}`,priority}));
+    const poItems=purchases.filter(p=>priority==="High" && (p.status==="Delayed" || dueSoon(p.eta))).map(p=>({title:p.po,meta:`Purchase · ${p.vendor} · ${p.status} · ETA ${p.eta||"—"}`,priority:"High"}));
+    const rows=[...projectItems,...crmItems,...poItems];
+    const col=document.createElement("div"); col.className="kanban-col";
+    col.innerHTML=`<h3><span>${priority}</span><span>${rows.length}</span></h3>`+rows.map(workItem).join("");
+    if(!rows.length) col.innerHTML+=`<div class="empty">No ${priority.toLowerCase()} priority work.</div>`;
+    board.appendChild(col);
+  });
+}
+function renderManagement(){
+  const body=document.getElementById("management-body"); body.innerHTML="";
+  MANAGEMENT_TEAM.forEach(t=>{
+    const activeProjects=projects.filter(p=>p.owner===t.owner && p.status!=="Completed").length;
+    const crmTasks=crmRecords.filter(r=>r.owner===t.owner && r.nextAction).length;
+    const escalation=(t.capacity>80 || activeProjects>2 || crmTasks>2)?"Monitor":"Normal";
+    body.innerHTML+=`<tr><td><strong>${esc(t.owner)}</strong></td><td>${esc(t.role)}</td><td>${activeProjects}</td><td>${crmTasks}</td><td class="${escalation==="Monitor"?"crm-due":""}">${escalation}</td><td><div class="progress"><span class="${t.capacity>80?"warn":""}" style="width:${t.capacity}%"></span></div></td></tr>`;
+  });
+  document.getElementById("management-count").textContent=`${MANAGEMENT_TEAM.length} owners`;
+  document.getElementById("management-team").innerHTML=MANAGEMENT_TEAM.map(t=>workItem({title:t.owner,meta:`${t.role} · ${t.capacity}% booked`,priority:t.capacity>80?"High":(t.capacity>65?"Medium":"Low"),progress:t.capacity})).join("");
+  document.getElementById("management-approvals").innerHTML=purchases.filter(p=>p.status==="Draft" || p.amount>50000).slice(0,5).map(p=>workItem({title:p.po,meta:`${p.vendor} · ${fmtMoney(p.amount)} · ${p.status}`,priority:p.amount>50000?"High":"Medium"})).join("") || `<div class="empty">No pending approvals.</div>`;
+  document.getElementById("management-kpis").innerHTML=[
+    workItem({title:"Conversion",meta:`${crmRecords.filter(r=>r.stage==="Won").length} won accounts`,priority:"Medium"}),
+    workItem({title:"Delivery Health",meta:`${purchases.filter(p=>p.status==="Delayed").length} delayed purchase orders`,priority:purchases.some(p=>p.status==="Delayed")?"High":"Low"}),
+    workItem({title:"Stock Exposure",meta:`${inventory.filter(i=>i.qty<=0).length} out-of-stock items`,priority:inventory.some(i=>i.qty<=0)?"High":"Low"})
+  ].join("");
+}
+
+function purchaseFiltered(){
+  const q=document.getElementById("purchase-q").value.toLowerCase().trim();
+  const status=document.getElementById("purchase-status-filter").value;
+  return purchases.filter(p=>{
+    if(status && p.status!==status) return false;
+    if(q && ![p.po,p.vendor,p.material,p.project,p.status,p.owner].join(" ").toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a,b)=>(a.eta||"9999").localeCompare(b.eta||"9999"));
+}
+function renderPurchase(){
+  const rows=purchaseFiltered();
+  const open=purchases.filter(p=>p.status!=="Received");
+  document.getElementById("purchase-s-open").textContent=open.length;
+  document.getElementById("purchase-s-spend").textContent=fmtMoney(open.reduce((s,p)=>s+(Number(p.amount)||0),0));
+  document.getElementById("purchase-s-delayed").textContent=purchases.filter(p=>p.status==="Delayed" || (p.status!=="Received" && dueSoon(p.eta))).length;
+  document.getElementById("purchase-s-vendors").textContent=new Set(purchases.map(p=>p.vendor).filter(Boolean)).size;
+  document.getElementById("purchase-count").textContent=`${rows.length} of ${purchases.length} purchase orders`;
+  document.getElementById("purchase-body").innerHTML=rows.map(p=>`
+    <tr><td><strong>${esc(p.po)}</strong></td><td>${esc(p.vendor)}</td><td>${esc(p.material)}</td><td>${esc(p.project)||"—"}</td>
+    <td><span class="pill ${p.status==="Delayed"?"qty-low":"qty-ok"}">${esc(p.status)}</span></td><td class="num">${fmtMoney(Number(p.amount)||0)}</td>
+    <td class="${p.status!=="Received"&&dueSoon(p.eta)?"crm-due":""}">${esc(p.eta)||"—"}</td>
+    <td><div class="crm-ledger-actions"><button class="crm-iconbtn" data-purchase-action="edit" data-id="${p.id}">E</button><button class="crm-iconbtn danger" data-purchase-action="delete" data-id="${p.id}">X</button></div></td></tr>`).join("") || `<tr><td colspan="8" class="empty">No purchase orders match your filters.</td></tr>`;
+}
+function fillPurchaseForm(p){
+  document.getElementById("purchase-edit-id").value=p.id;
+  document.getElementById("purchase-po").value=p.po||"";
+  document.getElementById("purchase-vendor").value=p.vendor||"";
+  document.getElementById("purchase-material").value=p.material||"";
+  document.getElementById("purchase-project").value=p.project||"";
+  document.getElementById("purchase-status").value=p.status||"Draft";
+  document.getElementById("purchase-amount").value=p.amount||0;
+  document.getElementById("purchase-eta").value=p.eta||"";
+  document.getElementById("purchase-owner").value=p.owner||"";
+  document.getElementById("purchase-submit").innerHTML='Update PO <span class="ic">+</span>';
+}
+function clearPurchaseForm(){
+  document.getElementById("purchase-edit-id").value="";
+  document.getElementById("purchase-submit").innerHTML='Save PO <span class="ic">+</span>';
+}
+document.getElementById("purchaseForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const id=document.getElementById("purchase-edit-id").value;
+  const payload={
+    po:document.getElementById("purchase-po").value.trim(),
+    vendor:document.getElementById("purchase-vendor").value.trim(),
+    material:document.getElementById("purchase-material").value.trim(),
+    project:document.getElementById("purchase-project").value.trim(),
+    status:document.getElementById("purchase-status").value,
+    amount:parseFloat(document.getElementById("purchase-amount").value)||0,
+    eta:document.getElementById("purchase-eta").value,
+    owner:document.getElementById("purchase-owner").value.trim()
+  };
+  if(!payload.po || !payload.vendor) return toast("PO number and vendor are required","err");
+  if(id){ Object.assign(purchases.find(p=>p.id==id),payload); toast("Purchase order updated","ok"); }
+  else { purchases.unshift({id:purchaseNextId(),...payload}); toast("Purchase order added","ok"); }
+  save(); refreshAll(); e.target.reset(); clearPurchaseForm();
+});
+document.getElementById("purchase-clear").addEventListener("click",clearPurchaseForm);
+["purchase-q","purchase-status-filter"].forEach(id=>document.getElementById(id).addEventListener("input",renderPurchase));
+document.getElementById("view-purchase").addEventListener("click",e=>{
+  const b=e.target.closest("[data-purchase-action]"); if(!b) return;
+  const p=purchases.find(x=>x.id==b.dataset.id); if(!p) return;
+  if(b.dataset.purchaseAction==="edit"){ fillPurchaseForm(p); document.getElementById("purchase-po").focus(); }
+  if(b.dataset.purchaseAction==="delete" && confirm(`Delete ${p.po}?`)){ purchases=purchases.filter(x=>x.id!==p.id); save(); refreshAll(); toast("Purchase order deleted","ok"); }
+});
+
+/* ============ ELECTRICIAN CRM ============ */
+const CRM_STAGES=["Lead","Qualified","Quoted","Negotiation","Won","Lost"];
+const CRM_SEED=[
+  {id:1,account:"Apex Packaging",contact:"R. Mehta",phone:"+91 98765 10234",email:"maintenance@apex.example",stage:"Quoted",priority:"High",value:185000,owner:"Nilesh",material:"MCC panel retrofit, VFD, overload relays",nextAction:"Send revised quotation",nextDate:"2026-06-18",notes:"Existing panel has heat damage. Client wants weekend shutdown.",lastActivity:"Quote V2 prepared for electrical panel retrofit.",updatedAt:Date.now()-86400000*1},
+  {id:2,account:"Metro Dairy",contact:"Sonal Patil",phone:"+91 99887 77665",email:"projects@metrodairy.example",stage:"Negotiation",priority:"High",value:320000,owner:"Prakash",material:"PLC, HMI, sensors, cable tray",nextAction:"Commercial call",nextDate:"2026-06-16",notes:"Payment terms under discussion. Inventory check needed for PLC stock.",lastActivity:"Technical offer accepted by maintenance head.",updatedAt:Date.now()-86400000*2},
+  {id:3,account:"BlueLine Pharma",contact:"A. Shah",phone:"+91 91234 00018",email:"ashah@blueline.example",stage:"Qualified",priority:"Medium",value:94000,owner:"Kiran",material:"Photoelectric sensors and control wiring",nextAction:"Site visit",nextDate:"2026-06-20",notes:"Line 3 intermittent sensor failure.",lastActivity:"Lead qualified after breakdown support call.",updatedAt:Date.now()-86400000*3},
+  {id:4,account:"Orion Foods",contact:"Vikram Rao",phone:"+91 90909 78787",email:"vikram@orion.example",stage:"Lead",priority:"Low",value:45000,owner:"Nilesh",material:"MCB, RCCB, push buttons",nextAction:"Initial discovery call",nextDate:"2026-06-25",notes:"Small spares package request.",lastActivity:"New inquiry captured from purchase team.",updatedAt:Date.now()-86400000*4},
+  {id:5,account:"Zenith Automation",contact:"M. Iyer",phone:"+91 94444 55443",email:"ops@zenith.example",stage:"Won",priority:"Medium",value:128000,owner:"Prakash",material:"Servo drive and PLC extension cards",nextAction:"Schedule delivery",nextDate:"2026-06-17",notes:"Won against urgent automation spares requirement.",lastActivity:"PO received. Awaiting dispatch confirmation.",updatedAt:Date.now()-86400000*5}
+];
+
+function crmNextId(){ return crmRecords.reduce((m,r)=>Math.max(m,r.id),0)+1; }
+function crmDateDue(record){
+  if(!record.nextDate || ["Won","Lost"].includes(record.stage)) return false;
+  return record.nextDate<=todayStr();
+}
+function crmFilteredRecords(){
+  const q=document.getElementById("crm-q").value.toLowerCase().trim();
+  const stage=document.getElementById("crm-stage-filter").value;
+  const priority=document.getElementById("crm-priority-filter").value;
+  return crmRecords.filter(r=>{
+    if(stage && r.stage!==stage) return false;
+    if(priority && r.priority!==priority) return false;
+    if(q){
+      const hay=[r.account,r.contact,r.phone,r.email,r.stage,r.priority,r.owner,r.material,r.nextAction,r.notes].join(" ").toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b)=>(a.nextDate||"9999").localeCompare(b.nextDate||"9999") || (b.value||0)-(a.value||0));
+}
+function renderCrm(){
+  const records=crmFilteredRecords();
+  renderCrmStats();
+  renderCrmBoard(records);
+  renderCrmLedger(records);
+  renderCrmInventorySignals();
+  renderCrmFeed();
+  document.getElementById("crm-count").textContent=`${records.length} of ${crmRecords.length} accounts`;
+}
+function renderCrmStats(){
+  const active=crmRecords.filter(r=>!["Won","Lost"].includes(r.stage)).length;
+  const pipeline=crmRecords.filter(r=>!["Won","Lost"].includes(r.stage)).reduce((s,r)=>s+(Number(r.value)||0),0);
+  const tasks=crmRecords.filter(r=>r.nextAction && !["Lost"].includes(r.stage)).length;
+  const critical=crmRecords.filter(r=>r.priority==="High" || crmDateDue(r)).length;
+  document.getElementById("crm-s-accounts").textContent=active;
+  document.getElementById("crm-s-pipeline").textContent=fmtMoney(pipeline);
+  document.getElementById("crm-s-tasks").textContent=tasks;
+  document.getElementById("crm-s-critical").textContent=critical;
+}
+function renderCrmBoard(records){
+  const board=document.getElementById("crm-board"); board.innerHTML="";
+  CRM_STAGES.forEach(stage=>{
+    const stageRows=records.filter(r=>r.stage===stage);
+    const col=document.createElement("div");
+    col.className="crm-col";
+    col.innerHTML=`<h3><span>${stage}</span><span>${stageRows.length}</span></h3>`;
+    stageRows.forEach(r=>{
+      const due=crmDateDue(r);
+      const card=document.createElement("div");
+      card.className=`crm-card ${String(r.priority||"").toLowerCase()}`;
+      card.innerHTML=`
+        <div class="crm-card-title">${esc(r.account)}</div>
+        <div class="crm-card-meta">${esc(r.contact)} · ${esc(r.owner)||"Unassigned"}</div>
+        <div class="crm-card-meta">${esc(r.material)||"No material requirement"}</div>
+        <div class="crm-card-value">${fmtMoney(Number(r.value)||0)}</div>
+        <div class="crm-card-meta ${due?"crm-due":""}">${esc(r.nextAction)||"No next action"}${r.nextDate?` · ${esc(r.nextDate)}`:""}</div>
+        <div class="crm-card-actions">
+          <button class="crm-iconbtn" title="Edit account" data-crm-action="edit" data-id="${r.id}">E</button>
+          <button class="crm-iconbtn" title="Advance stage" data-crm-action="advance" data-id="${r.id}">></button>
+          <button class="crm-iconbtn" title="Mark follow-up complete" data-crm-action="done" data-id="${r.id}">✓</button>
+        </div>`;
+      col.appendChild(card);
+    });
+    if(!stageRows.length){
+      const empty=document.createElement("div");
+      empty.className="empty";
+      empty.style.padding="28px 10px";
+      empty.textContent="No accounts";
+      col.appendChild(empty);
+    }
+    board.appendChild(col);
+  });
+}
+function renderCrmLedger(records){
+  const body=document.getElementById("crm-ledger"); body.innerHTML="";
+  records.forEach(r=>{
+    const due=crmDateDue(r);
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><strong>${esc(r.account)}</strong><br><span class="crm-card-meta">${esc(r.phone)||"No phone"} · ${esc(r.email)||"No email"}</span></td>
+      <td>${esc(r.contact)}</td>
+      <td><span class="pill ${due?"qty-low":"qty-ok"}">${esc(r.stage)}</span></td>
+      <td class="num">${fmtMoney(Number(r.value)||0)}</td>
+      <td>${esc(r.material)||"—"}</td>
+      <td>${esc(r.owner)||"—"}</td>
+      <td class="${due?"crm-due":""}">${esc(r.nextAction)||"—"}${r.nextDate?`<br><span class="crm-card-meta">${esc(r.nextDate)}</span>`:""}</td>
+      <td><div class="crm-ledger-actions">
+        <button class="crm-iconbtn" title="Edit" data-crm-action="edit" data-id="${r.id}">E</button>
+        <button class="crm-iconbtn danger" title="Delete" data-crm-action="delete" data-id="${r.id}">X</button>
+      </div></td>`;
+    body.appendChild(tr);
+  });
+  if(!records.length) body.innerHTML=`<tr><td colspan="8" class="empty">No CRM accounts match your filters.</td></tr>`;
+}
+function renderCrmInventorySignals(){
+  const box=document.getElementById("crm-inventory-signals"); box.innerHTML="";
+  const low=inventory
+    .filter(it=>it.qty<=5)
+    .sort((a,b)=>a.qty-b.qty || (b.unitPrice*b.qty)-(a.unitPrice*a.qty))
+    .slice(0,8);
+  low.forEach(it=>{
+    const div=document.createElement("div");
+    div.className=`crm-signal ${it.qty<=0?"zero":""}`;
+    div.innerHTML=`
+      <strong>${esc(it.itemName)}</strong>
+      Code: ${esc(it.itemCode)||"—"}<br>
+      Stock: <b>${fmtNum(it.qty)} ${esc(it.baseUOM)||""}</b> · Group: ${esc(it.productGroup)||"Unmapped"}<br>
+      Location: ${esc(it.location)||"—"}`;
+    box.appendChild(div);
+  });
+  if(!low.length) box.innerHTML=`<div class="empty">No low-stock signals.</div>`;
+}
+function renderCrmFeed(){
+  const feed=document.getElementById("crm-feed"); feed.innerHTML="";
+  crmRecords.slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,8).forEach(r=>{
+    const div=document.createElement("div");
+    div.className="crm-feed-item";
+    div.innerHTML=`<b>${esc(r.account)}</b><br>${esc(r.lastActivity)||"Account updated."}<br><span class="crm-card-meta">${esc(r.stage)} · ${esc(r.owner)||"Unassigned"}</span>`;
+    feed.appendChild(div);
+  });
+  if(!crmRecords.length) feed.innerHTML=`<div class="empty">No CRM activity yet.</div>`;
+}
+function fillCrmForm(record){
+  document.getElementById("crm-edit-id").value=record.id;
+  document.getElementById("crm-account").value=record.account||"";
+  document.getElementById("crm-contact").value=record.contact||"";
+  document.getElementById("crm-phone").value=record.phone||"";
+  document.getElementById("crm-email").value=record.email||"";
+  document.getElementById("crm-stage").value=record.stage||"Lead";
+  document.getElementById("crm-priority").value=record.priority||"Medium";
+  document.getElementById("crm-value").value=record.value||0;
+  document.getElementById("crm-owner").value=record.owner||"";
+  document.getElementById("crm-material").value=record.material||"";
+  document.getElementById("crm-next-action").value=record.nextAction||"";
+  document.getElementById("crm-next-date").value=record.nextDate||"";
+  document.getElementById("crm-notes").value=record.notes||"";
+  document.getElementById("crm-submit").innerHTML='Update Account <span class="ic">+</span>';
+}
+function clearCrmForm(){
+  document.getElementById("crm-edit-id").value="";
+  document.getElementById("crm-submit").innerHTML='Save Account <span class="ic">+</span>';
+}
+document.getElementById("crmForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const id=document.getElementById("crm-edit-id").value;
+  const payload={
+    account:document.getElementById("crm-account").value.trim(),
+    contact:document.getElementById("crm-contact").value.trim(),
+    phone:document.getElementById("crm-phone").value.trim(),
+    email:document.getElementById("crm-email").value.trim(),
+    stage:document.getElementById("crm-stage").value,
+    priority:document.getElementById("crm-priority").value,
+    value:parseFloat(document.getElementById("crm-value").value)||0,
+    owner:document.getElementById("crm-owner").value.trim(),
+    material:document.getElementById("crm-material").value.trim(),
+    nextAction:document.getElementById("crm-next-action").value.trim(),
+    nextDate:document.getElementById("crm-next-date").value,
+    notes:document.getElementById("crm-notes").value.trim(),
+    updatedAt:Date.now()
+  };
+  if(!payload.account || !payload.contact) return toast("Account and contact are required","err");
+  if(id){
+    const r=crmRecords.find(x=>x.id==id);
+    if(!r) return toast("CRM account not found","err");
+    Object.assign(r,payload,{lastActivity:`Account updated. Stage: ${payload.stage}.`});
+    toast(`Updated ${payload.account}`,"ok");
+  }else{
+    crmRecords.unshift({id:crmNextId(),...payload,lastActivity:`New ${payload.stage} account created.`});
+    toast(`Added ${payload.account} to CRM`,"ok");
+  }
+  save(); renderCrm(); e.target.reset(); clearCrmForm();
+});
+document.getElementById("crm-clear").addEventListener("click",clearCrmForm);
+["crm-q","crm-stage-filter","crm-priority-filter"].forEach(id=>document.getElementById(id).addEventListener("input",renderCrm));
+document.getElementById("crm-reset").addEventListener("click",()=>{
+  if(confirm("Restore the electrician CRM demo accounts? Inventory data will not change.")){
+    crmRecords=JSON.parse(JSON.stringify(CRM_SEED));
+    save(); renderCrm(); toast("CRM reset","ok");
+  }
+});
+document.getElementById("view-electrician-crm").addEventListener("click",e=>{
+  const b=e.target.closest("[data-crm-action]"); if(!b) return;
+  const record=crmRecords.find(r=>r.id==b.dataset.id);
+  if(!record) return;
+  const action=b.dataset.crmAction;
+  if(action==="edit"){
+    fillCrmForm(record);
+    document.getElementById("crm-account").focus();
+  }
+  if(action==="advance"){
+    const idx=CRM_STAGES.indexOf(record.stage);
+    if(idx>=0 && idx<CRM_STAGES.indexOf("Won")) record.stage=CRM_STAGES[idx+1];
+    record.updatedAt=Date.now();
+    record.lastActivity=`Stage moved to ${record.stage}.`;
+    save(); renderCrm(); toast(`${record.account} moved to ${record.stage}`,"ok");
+  }
+  if(action==="done"){
+    record.lastActivity=record.nextAction?`Completed: ${record.nextAction}.`:"Follow-up completed.";
+    record.nextAction="";
+    record.nextDate="";
+    record.updatedAt=Date.now();
+    save(); renderCrm(); toast(`Follow-up cleared for ${record.account}`,"ok");
+  }
+  if(action==="delete" && confirm(`Delete ${record.account} from CRM?`)){
+    crmRecords=crmRecords.filter(r=>r.id!==record.id);
+    save(); renderCrm(); toast("CRM account deleted","ok");
+  }
+});
+
+/* ============ REFRESH ALL ============ */
+function refreshAll(){
+  populateFilters();
+  fillGroupSelect(addGroupSel);
+  fillGroupSelect(useGroupSel);
+  renderDashboard();
+  renderProjects();
+  renderOngoing();
+  renderPriorities();
+  renderManagement();
+  renderPurchase();
+  renderInventory();
+  fillItemSelect(addItemSel,{withNew:true,group:addGroupSel.value,sort:addSortSel.value});
+  fillItemSelect(useItemSel,{group:useGroupSel.value,sort:useSortSel.value});
+  document.querySelectorAll("#bomLines .bomrow select").forEach(s=>{
+    const cur=s.value; fillItemSelect(s); s.value=cur;
+  });
+  renderReport();
+  renderCrm();
+}
+
+/* ============ INIT ============ */
+load();
+document.getElementById("add-date").value=todayStr();
+document.getElementById("use-date").value=todayStr();
+document.getElementById("bom-date").value=todayStr();
+addBomLine();
+refreshAll();
+if(session) openSession(session);
+function tick(){ document.getElementById("clock").textContent=new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}); }
+tick(); setInterval(tick,30000);
+</script>
+</body>
+</html>
